@@ -536,7 +536,7 @@ st.markdown("""
             🚀 مطور ومبتكر بواسطة المهندس التونسي
         </div>
         <div style="font-size: 22px; font-weight: 900; text-shadow: 0 2px 8px rgba(0,0,0,0.3);">
-            حسام كسنطيني (Houssem Kessentini)
+            حسام القسنطيني (Houssem Kessentini)
         </div>
         <div class="badge-sub">
             ⚡ منصة سيبرانية وتقنية متقدمة | Sfax, Tunisia
