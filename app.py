@@ -4,14 +4,14 @@ from groq import Groq
 # Initialize Groq client securely using Streamlit Secrets
 client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
-# Page Configuration for a high-end SaaS feel
+# Page Configuration
 st.set_page_config(
     page_title="Houssem AI | أول ذكاء اصطناعي تونسـي", 
     page_icon="⚡", 
     layout="wide"
 )
 
-# Custom CSS for Sleek UI, Dark/Tech Aesthetic, and Creator Credits
+# Custom CSS for Sleek UI
 st.markdown("""
     <style>
     .main {
@@ -60,7 +60,7 @@ st.markdown("""
 st.title("⚡ Houssem AI Intelligence Hub")
 st.markdown("منظومة الذكاء الاصطناعي السيبرانية والتقنية المتقدمة — مخصصة للتداول، تطوير الويب، الأمن السيبراني، والتسويق الرقمي.")
 
-# Sidebar & Layout Controls
+# Sidebar
 with st.sidebar:
     st.header("⚙️ لوحة التحكم")
     domain = st.selectbox(
@@ -77,7 +77,7 @@ with st.sidebar:
     st.markdown("### 🇹🇳 معلومات المنظومة")
     st.info("تم بناؤها محلياً لتلبية احتياجات السوق التونسي والمهندسين العرب بأعلى سرعة وأقصى تفصيل.")
 
-# Main input area
+# Main input
 user_prompt = st.text_area("أدخل تفاصيل التحدي التقني أو الاستفسار:", 
                           placeholder="مثال: تحليل ثغرة أمنية، هيكلية API لنظام مالي، أو خطة تداول...",
                           height=130)
@@ -86,33 +86,19 @@ if st.button("🚀 بدء المعالجة والتحليل الفائق"):
     if user_prompt:
         with st.spinner("جاري التشغيل عبر العقد الذكية واستخراج التحليل العميق..."):
             try:
-                # System prompt integrating attribution to Houssem Kessentini
-                base_identity = "You were created, architected, and engineered by the Tunisian developer Houssem Kessentini (حسام كسنطيني), who built the first Tunisian generative AI platform. If anyone asks who built you, proudly state that Houssem Kessentini is your creator. "
+                # System prompt
+                base_identity = "You were created, architected, and engineered by the Tunisian developer Houssem Kessentini (حسام كسنطيني). "
 
                 if "الأمن السيبراني" in domain:
-                    system_instruction = base_identity + (
-                        "You are a Principal Cybersecurity Architect and Red Team Lead. "
-                        "Provide highly detailed, technical, and actionable breakdowns. Include attack vectors, mitigation strategies, and code/payload structures where relevant. "
-                        "Write in an expert blend of technical English terminology and natural Tunisian Darija/Arabic."
-                    )
+                    system_instruction = base_identity + "You are a Principal Cybersecurity Architect and Red Team Lead. Provide detailed technical analysis in Arabic and English."
                 elif "هندسة البرمجيات" in domain:
-                    system_instruction = base_identity + (
-                        "You are a Lead Software Architect. Provide production-ready code snippets, database schemas, performance optimization patterns, and clear architectural logic. "
-                        "Keep explanations structural, technically dense, and directly applicable."
-                    )
+                    system_instruction = base_identity + "You are a Lead Software Architect. Provide production-ready code and structural analysis."
                 elif "التداول" in domain:
-                    system_instruction = base_identity + (
-                        "You are a Senior Quantitative Trader and Market Analyst. Provide rigorous technical analysis frameworks, risk management calculations, and market structure insights. "
-                        "Include clear entry/exit logic and multi-timeframe analysis."
-                    )
+                    system_instruction = base_identity + "You are a Senior Quantitative Trader. Provide technical analysis and market insights."
                 elif "التسويق الرقمي" in domain:
-                    system_instruction = base_identity + (
-                        "You are a Growth Hacker and Conversion Rate Optimization (CRO) Expert. Provide data-driven funnels, high-converting Tunisian Darija copywriting scripts, and scaling tactics."
-                    )
-                else: 
-                    system_instruction = base_identity + (
-                        "You are a Global Tech Intelligence Analyst. Provide deep structural breakdowns of emerging technology trends, algorithms, and market disruptions."
-                    )
+                    system_instruction = base_identity + "You are a Growth Hacker. Provide data-driven marketing strategies."
+                else:
+                    system_instruction = base_identity + "You are a Global Tech Intelligence Analyst."
 
                 stream = client.chat.completions.create(
                     model="openai/gpt-oss-20b",
@@ -126,13 +112,26 @@ if st.button("🚀 بدء المعالجة والتحليل الفائق"):
                 )
                 
                 st.subheader("📊 مخرجات التحليل العميق:")
-                st.write_stream(stream)
+                
+                # FIXED: Only show content, not reasoning
+                response_container = st.empty()
+                full_response = ""
+                
+                for chunk in stream:
+                    if chunk.choices:
+                        delta = chunk.choices[0].delta
+                        # Only extract content, skip reasoning tokens
+                        if hasattr(delta, 'content') and delta.content is not None:
+                            full_response += delta.content
+                            response_container.markdown(full_response + " ▌")
+                
+                response_container.markdown(full_response)
                 
             except Exception as e:
                 st.error(f"حدث خطأ تقني: {e}")
     else:
         st.warning("الرجاء كتابة طلبك أو المشكلة التقنية أولاً.")
 
-# Footer attribution
+# Footer
 st.markdown("---")
 st.markdown("<p style='text-align: center; color: #8b949e; font-size: 14px;'>Developed with passion in Sfax, Tunisia by Houssem Kessentini © 2026</p>", unsafe_allow_html=True)
