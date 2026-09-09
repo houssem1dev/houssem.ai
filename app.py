@@ -171,7 +171,7 @@ if "conversation_count" not in st.session_state:
 
 # ========== HEADER ==========
 st.markdown('<h1 class="custom-title">⚡ Houssem AI</h1>', unsafe_allow_html=True)
-st.markdown('<p class="custom-subtitle">🇹🇳 أول ذكاء اصطناعي تونسي متقدم — مطور بواسطة حسام كسنطيني</p>', unsafe_allow_html=True)
+st.markdown('<p class="custom-subtitle">🇹🇳  أول ذكاء اصطناعي تونسي متقدم — مطور بواسطة حسام القسنطيني</p>', unsafe_allow_html=True)
 
 # ========== SIDEBAR ==========
 with st.sidebar:
