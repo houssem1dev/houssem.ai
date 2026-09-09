@@ -14,20 +14,38 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ========== MODERN TUNISIAN THEME CSS ==========
+# ========== MODERN DARK TUNISIAN THEME CSS ==========
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
     
-    /* Global Styles */
+    /* ===== HIDE STREAMLIT TOOLBAR (Share, Star, GitHub, etc.) ===== */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    .stDeployButton {display: none;}
+    .stToolbar {display: none;}
+    div[data-testid="stToolbar"] {display: none;}
+    div[data-testid="stDecoration"] {display: none;}
+    div[data-testid="stStatusWidget"] {display: none;}
+    
+    /* ===== FORCE PURE DARK MODE ===== */
     .stApp {
         background: radial-gradient(circle at 20% 20%, #1a1a2e, #16213e, #0f3460);
         font-family: 'Cairo', sans-serif;
+        color: #ffffff;
     }
     
-    /* Hide default Streamlit header */
-    header[data-testid="stHeader"] {
-        background: transparent;
+    /* Override light mode elements if they appear */
+    .css-1d391kg, section[data-testid="stSidebar"] {
+        background: rgba(22, 33, 62, 0.9) !important;
+        color: #ffffff !important;
+        border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+    
+    /* Base text color to white */
+    h1, h2, h3, h4, h5, h6, p, span, div, label {
+        color: #ffffff !important;
     }
     
     /* Main Container */
@@ -48,7 +66,7 @@ st.markdown("""
     
     .custom-subtitle {
         text-align: center;
-        color: #bdc3c7;
+        color: #bdc3c7 !important;
         font-size: 1.1rem;
         margin-bottom: 2rem;
     }
@@ -68,25 +86,19 @@ st.markdown("""
     .stat-number {
         font-size: 2.5rem;
         font-weight: 900;
-        color: #e74c3c;
+        color: #e74c3c !important;
     }
     
     .stat-label {
-        color: #ecf0f1;
+        color: #ecf0f1 !important;
         font-size: 0.9rem;
         margin-top: 5px;
-    }
-    
-    /* Sidebar */
-    section[data-testid="stSidebar"] {
-        background: rgba(22, 33, 62, 0.9);
-        border-right: 1px solid rgba(255, 255, 255, 0.1);
     }
     
     /* Buttons */
     .stButton > button {
         background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-        color: white;
+        color: white !important;
         border: none;
         border-radius: 10px;
         font-weight: 700;
@@ -115,25 +127,35 @@ st.markdown("""
     
     /* Text Area */
     .stTextArea textarea {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 10px;
-        color: #fff;
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        border-radius: 10px !important;
+        color: #fff !important;
     }
     
     .stTextArea textarea:focus {
-        border: 1px solid #e74c3c;
+        border: 1px solid #e74c3c !important;
+    }
+    
+    /* Chat Input */
+    div[data-testid="stChatInput"] {
+        background: rgba(22, 33, 62, 0.9) !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    }
+    
+    div[data-testid="stChatInput"] input {
+        color: #fff !important;
     }
     
     /* Divider */
     hr {
-        border-color: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.1) !important;
     }
     
     /* Footer */
     .footer-text {
         text-align: center;
-        color: #95a5a6;
+        color: #95a5a6 !important;
         padding: 20px;
         font-size: 0.9rem;
     }
