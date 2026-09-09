@@ -67,32 +67,6 @@ st.markdown("""
         border-right: 2px solid #E70000 !important;
     }
     
-    /* ===== CHAT CONTAINER ===== */
-    .chat-wrapper {
-        background: rgba(13, 13, 13, 0.9);
-        border-radius: 16px;
-        padding: 20px;
-        border: 1px solid rgba(231, 0, 0, 0.2);
-        min-height: 500px;
-        max-height: 600px;
-        overflow-y: auto;
-        backdrop-filter: blur(10px);
-    }
-    
-    .chat-wrapper::-webkit-scrollbar {
-        width: 8px;
-    }
-    
-    .chat-wrapper::-webkit-scrollbar-track {
-        background: rgba(231, 0, 0, 0.1);
-        border-radius: 10px;
-    }
-    
-    .chat-wrapper::-webkit-scrollbar-thumb {
-        background: linear-gradient(180deg, #E70000, #CC0000);
-        border-radius: 10px;
-    }
-    
     /* ===== MESSAGES - NO TIME STAMPS ===== */
     .user-message {
         background: linear-gradient(135deg, #E70000 0%, #CC0000 100%);
@@ -376,8 +350,6 @@ with st.sidebar:
     """)
 
 # ========== CHAT INTERFACE ==========
-st.markdown('<div class="chat-wrapper">', unsafe_allow_html=True)
-
 # Display messages without time stamps
 if not st.session_state.messages:
     st.markdown("""
@@ -406,8 +378,6 @@ else:
                     {message["content"]}
                 </div>
             """, unsafe_allow_html=True)
-
-st.markdown('</div>', unsafe_allow_html=True)
 
 # ========== QUICK REPLY BUTTONS ==========
 st.markdown('<div style="margin: 10px 0;">', unsafe_allow_html=True)
