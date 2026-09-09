@@ -1,8 +1,8 @@
 import streamlit as st
 from groq import Groq
 
-# Initialize Groq client with your API key
-client = Groq(api_key="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")
+# Initialize Groq client securely using Streamlit Secrets
+client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
 # Page Configuration for a high-end SaaS feel
 st.set_page_config(
@@ -53,7 +53,7 @@ st.markdown("""
 # Creator Banner
 st.markdown("""
     <div class="creator-badge">
-        🚀 منصة مطورة ومبتكرة بواسطة المهندس التونسي: <u>حسام القسنطيني (Houssem Kessentini)</u> — أول ذكاء اصطناعي تونسي متقدم.
+        🚀 منصة مطورة ومبتكرة بواسطة المهندس التونسي: <u>حسام كسنطيني (Houssem Kessentini)</u> — أول ذكاء اصطناعي تونسي متقدم.
     </div>
 """, unsafe_allow_html=True)
 
