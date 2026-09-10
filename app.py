@@ -1,5 +1,5 @@
 import time
-from datetime import datetime, date
+from datetime import datetime
 from collections import defaultdict
 
 import streamlit as st
@@ -10,14 +10,14 @@ from groq import Groq
 # PAGE CONFIG
 # ============================================================
 st.set_page_config(
-    page_title="Houssem AI | أول ذكاء اصطناعي تونسـي",
-    page_icon="🇹🇳",
-    layout="wide",
+    page_title="Houssem AI",
+    page_icon="⚡",
+    layout="centered",
     initial_sidebar_state="collapsed",
 )
 
 # ============================================================
-# CSS
+# CSS — Phone-first
 # ============================================================
 st.markdown("""
     <style>
@@ -29,13 +29,69 @@ st.markdown("""
         display: none !important;
     }
 
-    /* Base */
+    /* ==== BASE ==== */
     html, body, .stApp {
         background: radial-gradient(circle at 20% 20%, #1a1a2e, #16213e, #0f3460);
         font-family: 'Cairo', sans-serif;
         color: #fff !important;
+        overflow-x: hidden !important;
     }
     h1,h2,h3,h4,h5,h6,p,span,div,label,small,strong { color:#fff !important; }
+
+    /* ==== CONTAINER — tight padding, full width ==== */
+    .block-container,
+    section.main > div {
+        padding: 0.5rem 0.6rem 6rem 0.6rem !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+    }
+
+    /* ==== TITLE — smaller on phone, no clipping ==== */
+    .custom-title {
+        text-align: center;
+        font-size: clamp(1.5rem, 8vw, 2.2rem);
+        font-weight: 900;
+        color: #fff;
+        margin: 0.3rem 0 0 0;
+        text-shadow: 0 0 15px rgba(231,76,60,0.6);
+        line-height: 1.15;
+        word-break: break-word;
+        padding: 0 4px;
+    }
+    .custom-subtitle {
+        text-align: center;
+        color: #bdc3c7 !important;
+        font-size: clamp(0.7rem, 3vw, 0.9rem);
+        margin: 0.4rem 0 0.8rem 0;
+        padding: 0 8px;
+        line-height: 1.5;
+    }
+
+    /* ==== WELCOME CARD ==== */
+    .welcome-box {
+        text-align: center;
+        padding: 20px 12px;
+        margin: 10px auto;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 15px;
+    }
+    .welcome-box .flag {
+        font-size: clamp(2rem, 10vw, 3rem);
+        line-height: 1;
+    }
+    .welcome-box .title {
+        font-size: clamp(1rem, 4vw, 1.3rem);
+        font-weight: 700;
+        margin: 10px 0 6px 0;
+        color: #fff;
+        line-height: 1.3;
+    }
+    .welcome-box .hint {
+        font-size: clamp(0.75rem, 3vw, 0.9rem);
+        color: #95a5a6 !important;
+        line-height: 1.6;
+    }
 
     /* ==== SIDEBAR ==== */
     section[data-testid="stSidebar"] {
@@ -46,22 +102,17 @@ st.markdown("""
         color: #fff !important;
     }
 
-    /* Dropdown in sidebar — dark */
+    /* Dropdown — dark */
     section[data-testid="stSidebar"] div[data-baseweb="select"] > div {
         background: rgba(231,76,60,0.15) !important;
         border: 1px solid rgba(231,76,60,0.5) !important;
         color: #fff !important;
     }
-    section[data-testid="stSidebar"] div[data-baseweb="select"] * {
+    div[data-baseweb="popover"] * {
+        background: #16213e !important;
         color: #fff !important;
     }
-    section[data-testid="stSidebar"] div[data-baseweb="popover"] * {
-        color: #fff !important;
-        background: #16213e !important;
-    }
-    ul[role="listbox"] {
-        background: #16213e !important;
-    }
+    ul[role="listbox"] { background: #16213e !important; }
     li[role="option"] {
         background: #16213e !important;
         color: #fff !important;
@@ -82,82 +133,38 @@ st.markdown("""
         width: 100% !important;
     }
 
-    /* Progress bars in sidebar */
-    section[data-testid="stSidebar"] .stProgress > div > div > div {
+    /* Progress bars */
+    .stProgress > div > div > div {
         background: linear-gradient(90deg, #e74c3c, #c0392b) !important;
     }
-    section[data-testid="stSidebar"] .stProgress > div > div {
+    .stProgress > div > div {
         background: rgba(255,255,255,0.1) !important;
     }
 
-    /* Main container */
-    .block-container {
-        padding: 1rem 0.8rem 4rem 0.8rem;
-        max-width: 1000px;
-    }
-
-    /* Header */
-    .custom-title {
-        text-align: center;
-        font-size: clamp(1.6rem, 5vw, 2.6rem);
-        font-weight: 900;
-        color: #fff;
-        margin: 0.5rem 0 0 0;
-        text-shadow: 0 0 20px rgba(231,76,60,0.5);
-        line-height: 1.2;
-    }
-    .custom-subtitle {
-        text-align: center;
-        color: #bdc3c7 !important;
-        font-size: clamp(0.75rem, 2.2vw, 1rem);
-        margin-bottom: 1rem;
-        padding: 0 0.5rem;
-        line-height: 1.5;
-    }
-
-    /* Stat cards */
-    .stat-card {
-        background: rgba(255,255,255,0.08);
-        border: 1px solid rgba(255,255,255,0.15);
-        border-radius: 12px;
-        padding: 12px 8px;
-        text-align: center;
-        margin-bottom: 8px;
-    }
-    .stat-number {
-        font-size: clamp(1.1rem, 3.5vw, 1.5rem);
-        font-weight: 900;
-        color: #e74c3c !important;
-        line-height: 1.1;
-    }
-    .stat-label {
-        color: #ecf0f1 !important;
-        font-size: clamp(0.65rem, 2vw, 0.8rem);
-        margin-top: 4px;
-    }
-
-    /* Chat messages */
+    /* ==== CHAT MESSAGES — compact on phone ==== */
     .stChatMessage {
         background: rgba(255,255,255,0.05) !important;
         border: 1px solid rgba(255,255,255,0.1) !important;
         border-radius: 14px !important;
-        padding: 10px 14px !important;
-        margin-bottom: 10px !important;
-        font-size: clamp(0.85rem, 2.3vw, 1rem) !important;
+        padding: 10px 12px !important;
+        margin-bottom: 8px !important;
+        font-size: 0.92rem !important;
+        line-height: 1.55 !important;
     }
     .stChatMessage.user {
         background: rgba(231,76,60,0.12) !important;
         border: 1px solid rgba(231,76,60,0.35) !important;
     }
     .stChatMessage p {
-        line-height: 1.6 !important;
+        line-height: 1.55 !important;
         margin: 0 !important;
+        word-wrap: break-word !important;
     }
 
-    /* Chat input at bottom */
+    /* ==== CHAT INPUT — sticky at bottom, red border ==== */
     div[data-testid="stChatInput"] {
         background: #16213e !important;
-        border: 1px solid rgba(231,76,60,0.4) !important;
+        border: 2px solid rgba(231,76,60,0.5) !important;
         border-radius: 12px !important;
     }
     div[data-testid="stChatInput"] textarea,
@@ -167,77 +174,90 @@ st.markdown("""
         background: transparent !important;
     }
 
-    /* Welcome card */
-    .welcome-box {
+    /* ==== STAT CARDS ==== */
+    .stat-card {
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 12px;
+        padding: 10px 8px;
         text-align: center;
-        padding: 30px 15px;
-        color: #bdc3c7;
+        margin-bottom: 8px;
     }
-    .welcome-box .flag {
-        font-size: clamp(2rem, 8vw, 3rem);
+    .stat-number {
+        font-size: clamp(1rem, 4vw, 1.4rem);
+        font-weight: 900;
+        color: #e74c3c !important;
+        line-height: 1.1;
     }
-    .welcome-box .title {
-        font-size: clamp(1.1rem, 3.5vw, 1.4rem);
-        font-weight: 700;
-        margin: 10px 0;
-        color: #fff;
+    .stat-label {
+        color: #ecf0f1 !important;
+        font-size: clamp(0.6rem, 2.5vw, 0.75rem);
+        margin-top: 3px;
     }
 
-    /* Footer */
+    /* ==== FOOTER — tiny ==== */
     .footer-text {
         text-align: center;
         color: #7f8c8d !important;
-        padding: 15px 10px;
-        font-size: clamp(0.65rem, 2vw, 0.8rem);
-        line-height: 1.6;
-        margin-top: 20px;
+        padding: 10px 6px;
+        font-size: clamp(0.6rem, 2.4vw, 0.75rem);
+        line-height: 1.5;
+        margin-top: 10px;
     }
 
     hr {
-        border-color: rgba(255,255,255,0.1) !important;
-        margin: 0.8rem 0 !important;
+        border-color: rgba(255,255,255,0.08) !important;
+        margin: 0.6rem 0 !important;
     }
 
-    /* ==== SIDEBAR TOGGLE — always visible on mobile ==== */
+    /* ==== SIDEBAR TOGGLE — always visible ==== */
     [data-testid="stSidebarCollapsedControl"],
-    [data-testid="collapsedControl"],
-    button[kind="header"] {
+    [data-testid="collapsedControl"] {
         visibility: visible !important;
         display: block !important;
         opacity: 1 !important;
         z-index: 999999 !important;
-        color: #fff !important;
     }
     [data-testid="stSidebarCollapsedControl"] svg,
     [data-testid="collapsedControl"] svg {
-        fill: #fff !important;
-        width: 24px !important;
-        height: 24px !important;
+        fill: #e74c3c !important;
+        width: 26px !important;
+        height: 26px !important;
     }
 
-    /* ==== MOBILE TWEAKS ==== */
+    /* ==== MOBILE SPECIFIC ==== */
     @media (max-width: 768px) {
         .block-container {
-            padding: 0.5rem 0.6rem 5rem 0.6rem;
+            padding: 0.4rem 0.5rem 6rem 0.5rem !important;
         }
-        .custom-title { margin-top: 0.3rem; }
-        .custom-subtitle { margin-bottom: 0.8rem; }
+
+        /* Column stacking on mobile */
         div[data-testid="column"] {
             width: 100% !important;
             flex: 1 1 100% !important;
             min-width: 100% !important;
         }
+
+        /* Compact chat */
         .stChatMessage {
-            padding: 8px 12px !important;
-            font-size: 0.9rem !important;
+            padding: 8px 10px !important;
+            font-size: 0.88rem !important;
+            border-radius: 12px !important;
+        }
+
+        /* Buttons */
+        .stButton > button {
+            font-size: 0.85rem !important;
+            padding: 0.5rem 0.8rem !important;
+            min-height: 40px !important;
         }
     }
 
-    @media (max-width: 480px) {
-        .block-container { padding: 0.4rem 0.5rem 5rem 0.5rem; }
+    @media (max-width: 400px) {
         .custom-title { font-size: 1.4rem; }
-        .custom-subtitle { font-size: 0.75rem; }
-        .stat-number { font-size: 1.1rem; }
+        .custom-subtitle { font-size: 0.7rem; }
+        .welcome-box { padding: 15px 8px; }
+        .stChatMessage { font-size: 0.85rem !important; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -309,7 +329,7 @@ def rate_usage(ip: str):
     }
 
 # ============================================================
-# VISITOR COUNTER (persistent via CountAPI)
+# VISITOR COUNTER
 # ============================================================
 if "counted_visit" not in st.session_state:
     try:
@@ -394,8 +414,8 @@ with st.sidebar:
             label = labels_map.get(window, window)
             pct = min(count / limit, 1.0) if limit else 0.0
             st.progress(pct, text=f"{label}: {count}/{limit}")
-    except Exception as e:
-        st.caption(f"استهلاك غير متاح: {e}")
+    except Exception:
+        st.caption("استهلاك غير متاح")
 
     st.markdown("---")
 
@@ -449,28 +469,35 @@ with st.sidebar:
     st.caption(f"🌍 IP: `{client_ip}`")
 
 # ============================================================
-# MAIN AREA
+# MAIN AREA — TITLE
 # ============================================================
 st.markdown('<h1 class="custom-title">⚡ Houssem AI</h1>', unsafe_allow_html=True)
 st.markdown(
-    '<p class="custom-subtitle">🇹🇳 أول ذكاء اصطناعي تونسي متقدم — مطور بواسطة حسام القسنطيني</p>',
+    '<p class="custom-subtitle">🇹🇳 أول ذكاء اصطناعي تونسي متقدم</p>',
     unsafe_allow_html=True,
 )
 
+# ============================================================
+# WELCOME
+# ============================================================
 if not st.session_state.messages:
     st.markdown("""
         <div class="welcome-box">
             <div class="flag">🇹🇳</div>
             <div class="title">مرحباً بك في Houssem AI</div>
-            <div>اختر المجال من القائمة الجانبية ☰ ثم اكتب سؤالك في الأسفل</div>
+            <div class="hint">
+                افتح القائمة ☰ واختر المجال<br>
+                ثم اكتب سؤالك في الأسفل
+            </div>
         </div>
     """, unsafe_allow_html=True)
 
+# ============================================================
+# CHAT HISTORY
+# ============================================================
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
-
-st.markdown('<hr>', unsafe_allow_html=True)
 
 # ============================================================
 # INPUT
@@ -534,8 +561,7 @@ if prompt := st.chat_input("اكتب سؤالك هنا..."):
 # ============================================================
 st.markdown("""
     <div class="footer-text">
-        🇹🇳 Developed with ❤️ in <strong>Sfax, Tunisia</strong>
-        by <strong>Houssem Kessentini</strong> 🇹🇳<br>
-        ⚡ Powered by Groq AI | 🛡️ Secured | © 2026
+        🇹🇳 <strong>Houssem AI</strong> — Developed in Sfax, Tunisia<br>
+        ⚡ Powered by Groq AI | © 2026
     </div>
 """, unsafe_allow_html=True)
