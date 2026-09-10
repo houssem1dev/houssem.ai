@@ -19,59 +19,34 @@ st.set_page_config(
     page_title="Houssem AI | أول ذكاء اصطناعي تونسـي",
     page_icon="🇹🇳",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 
 # ============================================================
-# THEME CSS
+# CSS — responsive, hides sidebar completely
 # ============================================================
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
 
+    /* Hide Streamlit chrome AND the entire sidebar + its toggle */
     #MainMenu, footer, .stDeployButton,
     div[data-testid="stToolbar"], div[data-testid="stDecoration"],
-    div[data-testid="stStatusWidget"] {
-        display: none !important;
-    }
-
-    header[data-testid="stHeader"] {
-        background: transparent !important;
-        box-shadow: none !important;
-        height: auto !important;
-        min-height: 40px !important;
-    }
-
+    div[data-testid="stStatusWidget"],
+    section[data-testid="stSidebar"],
     [data-testid="stSidebarCollapsedControl"],
     [data-testid="collapsedControl"],
     button[kind="header"],
     button[kind="headerNoPadding"] {
-        visibility: visible !important;
-        display: inline-flex !important;
-        opacity: 1 !important;
-        color: #fff !important;
-        background: rgba(231,76,60,0.95) !important;
-        border-radius: 8px !important;
-        margin: 6px !important;
-        padding: 6px !important;
-        z-index: 9999999 !important;
-        box-shadow: 0 4px 12px rgba(231,76,60,0.6) !important;
-    }
-    [data-testid="stSidebarCollapsedControl"] svg,
-    [data-testid="collapsedControl"] svg,
-    button[kind="header"] svg,
-    button[kind="headerNoPadding"] svg {
-        fill: #fff !important;
-        color: #fff !important;
-        width: 22px !important;
-        height: 22px !important;
+        display: none !important;
+        visibility: hidden !important;
     }
 
-    section[data-testid="stSidebar"] {
-        background: rgba(22,33,62,0.98) !important;
-        border-right: 2px solid rgba(231,76,60,0.4) !important;
+    header[data-testid="stHeader"] {
+        display: none !important;
     }
 
+    /* Base */
     html, body, .stApp {
         background: radial-gradient(circle at 20% 20%, #1a1a2e, #16213e, #0f3460);
         font-family: 'Cairo', sans-serif;
@@ -83,7 +58,7 @@ st.markdown("""
 
     .block-container {
         padding: 1rem 0.8rem 2rem 0.8rem;
-        max-width: 1200px;
+        max-width: 1100px;
         margin: 0 auto;
     }
 
@@ -105,25 +80,25 @@ st.markdown("""
     }
 
     .stat-card {
-        background: rgba(255,255,255,0.1);
+        background: rgba(255,255,255,0.08);
         backdrop-filter: blur(10px);
-        border: 1px solid rgba(255,255,255,0.2);
+        border: 1px solid rgba(255,255,255,0.15);
         border-radius: 15px;
-        padding: clamp(12px, 3vw, 20px);
+        padding: 14px 10px;
         text-align: center;
-        box-shadow: 0 4px 30px rgba(0,0,0,0.1);
-        margin-bottom: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        margin-bottom: 10px;
     }
     .stat-number {
-        font-size: clamp(1.4rem, 5vw, 2.5rem);
+        font-size: clamp(1.2rem, 4vw, 1.8rem);
         font-weight: 900;
         color: #e74c3c !important;
         line-height: 1;
     }
     .stat-label {
         color: #ecf0f1 !important;
-        font-size: clamp(0.7rem, 2.2vw, 0.9rem);
-        margin-top: 5px;
+        font-size: clamp(0.7rem, 2vw, 0.85rem);
+        margin-top: 4px;
     }
 
     .stButton > button {
@@ -166,10 +141,6 @@ st.markdown("""
         font-size: 16px !important;
         min-height: 44px;
     }
-    .stTextInput input:focus,
-    .stTextArea textarea:focus {
-        border: 1px solid #e74c3c !important;
-    }
 
     div[data-testid="stChatInput"] {
         background: rgba(22,33,62,0.95) !important;
@@ -180,6 +151,13 @@ st.markdown("""
     div[data-testid="stChatInput"] textarea {
         color: #fff !important;
         font-size: 16px !important;
+    }
+
+    /* Selectbox styling */
+    div[data-baseweb="select"] > div {
+        background: rgba(255,255,255,0.05) !important;
+        border: 1px solid rgba(255,255,255,0.2) !important;
+        color: #fff !important;
     }
 
     .footer-text {
@@ -203,13 +181,6 @@ st.markdown("""
         }
     }
 
-    @media (max-width: 480px) {
-        .block-container { padding: 0.6rem 0.4rem 1.5rem 0.4rem; }
-        .custom-title { font-size: 1.6rem; }
-        .stat-number { font-size: 1.4rem; }
-        .stButton > button { font-size: 0.85rem; padding: 0.55rem 0.9rem; }
-    }
-
     @media (prefers-reduced-motion: reduce) {
         * { transition: none !important; animation: none !important; }
     }
@@ -217,13 +188,11 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ============================================================
-# CLIENT IP DETECTION (for rate limiting)
+# CLIENT IP
 # ============================================================
 def get_client_ip() -> str:
-    """Get the real client IP (works on Streamlit Cloud via X-Forwarded-For)."""
     try:
         headers = st.context.headers
-        # Streamlit Cloud sets these
         xff = headers.get("X-Forwarded-For") or headers.get("x-forwarded-for")
         if xff:
             return xff.split(",")[0].strip()
@@ -251,7 +220,6 @@ def get_rate_limiter():
 
 client = get_groq_client()
 limiter = get_rate_limiter()
-
 client_ip = get_client_ip()
 
 # ============================================================
@@ -261,15 +229,6 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 if "conversation_count" not in st.session_state:
     st.session_state.conversation_count = 0
-
-# ============================================================
-# HEADER
-# ============================================================
-st.markdown('<h1 class="custom-title">⚡ Houssem AI</h1>', unsafe_allow_html=True)
-st.markdown(
-    '<p class="custom-subtitle">🇹🇳 أول ذكاء اصطناعي تونسي متقدم — مطور بواسطة حسام القسنطيني</p>',
-    unsafe_allow_html=True,
-)
 
 # ============================================================
 # DOMAIN MAP
@@ -293,14 +252,22 @@ DOMAIN_MAP = {
 BASE_IDENTITY = "You are Houssem AI, created by Houssem Kessentini. "
 
 # ============================================================
-# SIDEBAR
+# HEADER
 # ============================================================
-with st.sidebar:
-    st.markdown("## ⚡ Houssem AI")
-    st.caption("🛡️ بدون تسجيل — استخدام مباشر")
-    st.markdown("---")
+st.markdown('<h1 class="custom-title">⚡ Houssem AI</h1>', unsafe_allow_html=True)
+st.markdown(
+    '<p class="custom-subtitle">🇹🇳 أول ذكاء اصطناعي تونسي متقدم — مطور بواسطة حسام القسنطيني</p>',
+    unsafe_allow_html=True,
+)
 
-    st.markdown("### ⚙️ لوحة التحكم")
+# ============================================================
+# CONTROL PANEL (inline, above the chat)
+# ============================================================
+st.markdown("### ⚙️ لوحة التحكم")
+
+ctrl_col1, ctrl_col2 = st.columns([3, 2])
+
+with ctrl_col1:
     if "domain_choice" not in st.session_state:
         st.session_state.domain_choice = list(DOMAIN_MAP.keys())[0]
 
@@ -312,9 +279,8 @@ with st.sidebar:
     )
     domain = st.session_state.domain_choice
 
-    st.markdown("---")
-    st.markdown("### 📊 استهلاكك")
-
+with ctrl_col2:
+    st.markdown("**📊 استهلاكك**")
     try:
         usage = limiter.get_usage(f"ip:{client_ip}")
         limits_map = {"minute": 15, "hour": 200, "day": 1500}
@@ -327,29 +293,38 @@ with st.sidebar:
     except Exception:
         st.caption("معلومات الاستهلاك غير متاحة.")
 
-    st.markdown("---")
-    st.caption(f"🌍 IP: `{client_ip}`")
+st.markdown("---")
 
-    st.markdown("---")
+# Stats row
+stat_col1, stat_col2, stat_col3 = st.columns(3)
+with stat_col1:
+    st.markdown(f"""
+        <div class="stat-card">
+            <div class="stat-number">{st.session_state.conversation_count}</div>
+            <div class="stat-label">الرسائل المرسلة</div>
+        </div>
+    """, unsafe_allow_html=True)
+with stat_col2:
+    st.markdown(f"""
+        <div class="stat-card">
+            <div class="stat-number">{len(st.session_state.messages)}</div>
+            <div class="stat-label">في المحادثة</div>
+        </div>
+    """, unsafe_allow_html=True)
+with stat_col3:
+    st.markdown(f"""
+        <div class="stat-card">
+            <div class="stat-number" style="font-size:clamp(0.9rem,2.5vw,1.2rem);">{client_ip}</div>
+            <div class="stat-label">عنوان IP</div>
+        </div>
+    """, unsafe_allow_html=True)
 
-    col1, col2 = st.columns(2)
-    with col1:
-        st.markdown(f"""
-            <div class="stat-card">
-                <div class="stat-number">{st.session_state.conversation_count}</div>
-                <div class="stat-label">الرسائل المرسلة</div>
-            </div>
-        """, unsafe_allow_html=True)
-    with col2:
-        st.markdown(f"""
-            <div class="stat-card">
-                <div class="stat-number">{len(st.session_state.messages)}</div>
-                <div class="stat-label">في المحادثة</div>
-            </div>
-        """, unsafe_allow_html=True)
+st.markdown("---")
 
-    st.markdown("---")
+# Action buttons
+btn_col1, btn_col2, btn_col3 = st.columns(3)
 
+with btn_col1:
     if st.session_state.messages:
         chat_text = "\n".join(
             f"{'👤' if m['role'] == 'user' else '🤖'}: {m['content']}"
@@ -362,23 +337,32 @@ with st.sidebar:
             mime="text/plain",
             use_container_width=True,
         )
+    else:
+        st.button("📥 تصدير المحادثة", disabled=True, use_container_width=True)
 
+with btn_col2:
     if st.button("🗑️ مسح المحادثة", use_container_width=True):
         st.session_state.messages = []
         st.session_state.conversation_count = 0
         st.rerun()
+
+with btn_col3:
+    if st.button("🔄 تحديث", use_container_width=True):
+        st.rerun()
+
+st.markdown("---")
 
 # ============================================================
 # WELCOME
 # ============================================================
 if not st.session_state.messages:
     st.markdown("""
-        <div style="text-align:center;padding:40px;color:#95a5a6;">
+        <div style="text-align:center;padding:30px;color:#95a5a6;">
             <div style="font-size:50px;">🇹🇳</div>
-            <div style="font-size:1.5rem;font-weight:700;margin:10px 0;color:#fff;">
+            <div style="font-size:1.3rem;font-weight:700;margin:10px 0;color:#fff;">
                 مرحباً بك في Houssem AI
             </div>
-            <div>اكتب سؤالك في الأسفل وابدأ التحليل الذكي</div>
+            <div>اختر المجال ثم اكتب سؤالك في الأسفل</div>
         </div>
     """, unsafe_allow_html=True)
 
@@ -389,21 +373,17 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-st.markdown('<hr>', unsafe_allow_html=True)
-
 # ============================================================
-# INPUT HANDLING
+# INPUT
 # ============================================================
 if prompt := st.chat_input("اكتب سؤالك هنا..."):
 
-    # ---- Rate limit keyed by IP ----
     rate_key = f"ip:{client_ip}"
     allowed, reason = limiter.check(rate_key)
     if not allowed:
         st.warning(reason)
         st.stop()
 
-    # ---- Validation ----
     ok, err = validate_input(prompt)
     if not ok:
         st.error(err)
@@ -417,7 +397,6 @@ if prompt := st.chat_input("اكتب سؤالك هنا..."):
     with st.chat_message("user"):
         st.markdown(safe_prompt)
 
-    # ---- LLM call ----
     with st.chat_message("assistant"):
         try:
             system_instruction = build_system_prompt(BASE_IDENTITY, DOMAIN_MAP[domain])
