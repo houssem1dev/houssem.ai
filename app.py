@@ -1,21 +1,16 @@
-import os
 import time
 from datetime import datetime
 
 import streamlit as st
 from groq import Groq
 
-from auth import require_auth, logout
-from audit import audit
-from rate_limit import RedisRateLimiter
 from security import (
     validate_input,
     sanitize_input,
     build_system_prompt,
     trim_history,
-    hash_session_id,
-    MAX_MESSAGES_IN_HISTORY,
 )
+from rate_limit import RedisRateLimiter
 
 # ============================================================
 # PAGE CONFIG
@@ -28,20 +23,18 @@ st.set_page_config(
 )
 
 # ============================================================
-# THEME CSS — responsive + visible sidebar toggle
+# THEME CSS
 # ============================================================
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
 
-    /* Hide only the extra chrome, keep the header (for the sidebar toggle) */
     #MainMenu, footer, .stDeployButton,
     div[data-testid="stToolbar"], div[data-testid="stDecoration"],
     div[data-testid="stStatusWidget"] {
         display: none !important;
     }
 
-    /* Header: transparent, but keep the toggle button space */
     header[data-testid="stHeader"] {
         background: transparent !important;
         box-shadow: none !important;
@@ -49,7 +42,6 @@ st.markdown("""
         min-height: 40px !important;
     }
 
-    /* Force the sidebar toggle arrow to be visible */
     [data-testid="stSidebarCollapsedControl"],
     [data-testid="collapsedControl"],
     button[kind="header"],
@@ -65,7 +57,6 @@ st.markdown("""
         z-index: 9999999 !important;
         box-shadow: 0 4px 12px rgba(231,76,60,0.6) !important;
     }
-
     [data-testid="stSidebarCollapsedControl"] svg,
     [data-testid="collapsedControl"] svg,
     button[kind="header"] svg,
@@ -76,13 +67,11 @@ st.markdown("""
         height: 22px !important;
     }
 
-    /* Keep sidebar styled */
     section[data-testid="stSidebar"] {
         background: rgba(22,33,62,0.98) !important;
         border-right: 2px solid rgba(231,76,60,0.4) !important;
     }
 
-    /* Base */
     html, body, .stApp {
         background: radial-gradient(circle at 20% 20%, #1a1a2e, #16213e, #0f3460);
         font-family: 'Cairo', sans-serif;
@@ -193,16 +182,6 @@ st.markdown("""
         font-size: 16px !important;
     }
 
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 0.5rem;
-        justify-content: center;
-        flex-wrap: wrap;
-    }
-    .stTabs [data-baseweb="tab"] {
-        font-size: clamp(0.8rem, 2.5vw, 1rem);
-        padding: 0.5rem 1rem;
-    }
-
     .footer-text {
         text-align: center;
         color: #95a5a6 !important;
@@ -238,9 +217,23 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ============================================================
-# AUTH GATE
+# CLIENT IP DETECTION (for rate limiting)
 # ============================================================
-username = require_auth()
+def get_client_ip() -> str:
+    """Get the real client IP (works on Streamlit Cloud via X-Forwarded-For)."""
+    try:
+        headers = st.context.headers
+        # Streamlit Cloud sets these
+        xff = headers.get("X-Forwarded-For") or headers.get("x-forwarded-for")
+        if xff:
+            return xff.split(",")[0].strip()
+        real_ip = headers.get("X-Real-Ip") or headers.get("x-real-ip")
+        if real_ip:
+            return real_ip.strip()
+    except Exception:
+        pass
+    return "unknown"
+
 
 # ============================================================
 # CACHED RESOURCES
@@ -259,6 +252,8 @@ def get_rate_limiter():
 client = get_groq_client()
 limiter = get_rate_limiter()
 
+client_ip = get_client_ip()
+
 # ============================================================
 # SESSION STATE
 # ============================================================
@@ -266,10 +261,15 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 if "conversation_count" not in st.session_state:
     st.session_state.conversation_count = 0
-if "session_id" not in st.session_state:
-    st.session_state.session_id = hash_session_id(f"{username}:{time.time()}")
-if "domain_choice" not in st.session_state:
-    st.session_state.domain_choice = "🔐 الأمن السيبراني والهندسة العكسية"
+
+# ============================================================
+# HEADER
+# ============================================================
+st.markdown('<h1 class="custom-title">⚡ Houssem AI</h1>', unsafe_allow_html=True)
+st.markdown(
+    '<p class="custom-subtitle">🇹🇳 أول ذكاء اصطناعي تونسي متقدم — مطور بواسطة حسام القسنطيني</p>',
+    unsafe_allow_html=True,
+)
 
 # ============================================================
 # DOMAIN MAP
@@ -296,11 +296,14 @@ BASE_IDENTITY = "You are Houssem AI, created by Houssem Kessentini. "
 # SIDEBAR
 # ============================================================
 with st.sidebar:
-    st.markdown(f"## 👤 {username}")
-    st.caption("🛡️ جلسة موثقة")
+    st.markdown("## ⚡ Houssem AI")
+    st.caption("🛡️ بدون تسجيل — استخدام مباشر")
     st.markdown("---")
 
     st.markdown("### ⚙️ لوحة التحكم")
+    if "domain_choice" not in st.session_state:
+        st.session_state.domain_choice = list(DOMAIN_MAP.keys())[0]
+
     st.session_state.domain_choice = st.selectbox(
         "🎯 المجال التحليلي:",
         list(DOMAIN_MAP.keys()),
@@ -310,10 +313,10 @@ with st.sidebar:
     domain = st.session_state.domain_choice
 
     st.markdown("---")
-    st.markdown("### 📊 الاستهلاك")
+    st.markdown("### 📊 استهلاكك")
 
     try:
-        usage = limiter.get_usage(st.session_state.session_id)
+        usage = limiter.get_usage(f"ip:{client_ip}")
         limits_map = {"minute": 15, "hour": 200, "day": 1500}
         labels_map = {"minute": "دقيقة", "hour": "ساعة", "day": "يوم"}
         for window, count in usage.items():
@@ -325,20 +328,23 @@ with st.sidebar:
         st.caption("معلومات الاستهلاك غير متاحة.")
 
     st.markdown("---")
+    st.caption(f"🌍 IP: `{client_ip}`")
+
+    st.markdown("---")
 
     col1, col2 = st.columns(2)
     with col1:
         st.markdown(f"""
             <div class="stat-card">
                 <div class="stat-number">{st.session_state.conversation_count}</div>
-                <div class="stat-label">المحادثات</div>
+                <div class="stat-label">الرسائل المرسلة</div>
             </div>
         """, unsafe_allow_html=True)
     with col2:
         st.markdown(f"""
             <div class="stat-card">
                 <div class="stat-number">{len(st.session_state.messages)}</div>
-                <div class="stat-label">الرسائل</div>
+                <div class="stat-label">في المحادثة</div>
             </div>
         """, unsafe_allow_html=True)
 
@@ -358,72 +364,21 @@ with st.sidebar:
         )
 
     if st.button("🗑️ مسح المحادثة", use_container_width=True):
-        audit("chat_cleared", "User cleared chat",
-              session=st.session_state.session_id, user=username)
         st.session_state.messages = []
         st.session_state.conversation_count = 0
         st.rerun()
-
-    if st.button("🚪 تسجيل الخروج", use_container_width=True, key="logout_sidebar"):
-        logout()
-
-    ADMIN_USERS = ["houssem", "zaineb"]
-    if username in ADMIN_USERS:
-        with st.expander("🛠️ Admin Panel"):
-            try:
-                from users_db import list_users, count_users
-                st.markdown(f"**Total users:** {count_users()}")
-                for u in list_users():
-                    st.markdown(f"- `{u['username']}` — {str(u['created_at'])[:10]}")
-            except Exception as e:
-                st.caption(f"Admin data unavailable: {e}")
-
-# ============================================================
-# TOP BAR — user badge + backup logout
-# ============================================================
-top_left, top_center, top_right = st.columns([3, 5, 2])
-
-with top_left:
-    st.markdown(f"""
-        <div style="
-            background: rgba(231,76,60,0.15);
-            border: 1px solid rgba(231,76,60,0.4);
-            border-radius: 12px;
-            padding: 8px 14px;
-            font-size: 0.85rem;
-            color: #fff !important;
-        ">
-            👤 <b>{username}</b>
-        </div>
-    """, unsafe_allow_html=True)
-
-with top_right:
-    if st.button("🚪 خروج", key="logout_top", use_container_width=True):
-        logout()
-
-# ============================================================
-# HEADER
-# ============================================================
-st.markdown('<h1 class="custom-title">⚡ Houssem AI</h1>', unsafe_allow_html=True)
-st.markdown(
-    '<p class="custom-subtitle">🇹🇳 أول ذكاء اصطناعي تونسي متقدم — مطور بواسطة حسام القسنطيني</p>',
-    unsafe_allow_html=True,
-)
 
 # ============================================================
 # WELCOME
 # ============================================================
 if not st.session_state.messages:
-    st.markdown(f"""
+    st.markdown("""
         <div style="text-align:center;padding:40px;color:#95a5a6;">
             <div style="font-size:50px;">🇹🇳</div>
             <div style="font-size:1.5rem;font-weight:700;margin:10px 0;color:#fff;">
-                مرحباً {username}
+                مرحباً بك في Houssem AI
             </div>
             <div>اكتب سؤالك في الأسفل وابدأ التحليل الذكي</div>
-            <div style="margin-top:12px;font-size:0.8rem;color:#7f8c8d;">
-                💡 اضغط على زر <b>»</b> في الأعلى لفتح القائمة الجانبية
-            </div>
         </div>
     """, unsafe_allow_html=True)
 
@@ -441,20 +396,16 @@ st.markdown('<hr>', unsafe_allow_html=True)
 # ============================================================
 if prompt := st.chat_input("اكتب سؤالك هنا..."):
 
-    sid = st.session_state.session_id
-
-    allowed, reason = limiter.check(sid)
+    # ---- Rate limit keyed by IP ----
+    rate_key = f"ip:{client_ip}"
+    allowed, reason = limiter.check(rate_key)
     if not allowed:
-        audit("rate_limit_hit", reason, session=sid, user=username,
-              domain=domain, level="WARNING")
         st.warning(reason)
         st.stop()
 
+    # ---- Validation ----
     ok, err = validate_input(prompt)
     if not ok:
-        event = "harmful_blocked" if "غير مسموح" in err else "injection_blocked"
-        audit(event, err, session=sid, user=username, domain=domain,
-              level="WARNING", preview=prompt[:120])
         st.error(err)
         st.stop()
 
@@ -463,19 +414,14 @@ if prompt := st.chat_input("اكتب سؤالك هنا..."):
     st.session_state.messages.append({"role": "user", "content": safe_prompt})
     st.session_state.conversation_count += 1
 
-    audit("chat_request", f"len={len(safe_prompt)}",
-          session=sid, user=username, domain=domain,
-          preview=safe_prompt[:120])
-
     with st.chat_message("user"):
         st.markdown(safe_prompt)
 
+    # ---- LLM call ----
     with st.chat_message("assistant"):
         try:
             system_instruction = build_system_prompt(BASE_IDENTITY, DOMAIN_MAP[domain])
-            history = trim_history(
-                st.session_state.messages, MAX_MESSAGES_IN_HISTORY
-            )
+            history = trim_history(st.session_state.messages, 20)
 
             api_messages = [{"role": "system", "content": system_instruction}]
             api_messages.extend(
@@ -510,12 +456,7 @@ if prompt := st.chat_input("اكتب سؤالك هنا..."):
                 {"role": "assistant", "content": full_response}
             )
 
-            audit("chat_response", f"len={len(full_response)}",
-                  session=sid, user=username, domain=domain)
-
         except Exception as e:
-            audit("chat_error", str(e), session=sid, user=username,
-                  level="ERROR")
             st.error("❌ حدث خطأ تقني. الرجاء المحاولة مرة أخرى.")
 
 # ============================================================
