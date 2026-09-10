@@ -6,18 +6,27 @@ import streamlit as st
 import requests
 from groq import Groq
 
+# ============================================================
+# PAGE CONFIG
+# ============================================================
 st.set_page_config(
-    page_title="Houssem AI",
+    page_title="Houssem AI — حسام AI",
     page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
+# ============================================================
+# META
+# ============================================================
 st.markdown("""
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#1a1a1a">
 """, unsafe_allow_html=True)
 
+# ============================================================
+# CSS
+# ============================================================
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap');
@@ -54,17 +63,37 @@ st.markdown("""
         font-family: 'Cairo', sans-serif !important;
     }
 
-    /* Material icons font fix */
-    .material-symbols-rounded,
-    .material-symbols-outlined,
-    .material-icons,
-    [data-testid="stIconMaterial"] {
-        font-family: 'Material Symbols Rounded', 'Material Icons', sans-serif !important;
-        font-weight: normal !important;
-        font-style: normal !important;
-        letter-spacing: normal !important;
-        text-transform: none !important;
-        -webkit-font-smoothing: antialiased !important;
+    /* ============================================================
+       MOBILE SIDEBAR TOGGLE — bulletproof
+       ============================================================ */
+    [data-testid="stSidebarCollapsedControl"],
+    [data-testid="collapsedControl"],
+    button[aria-label="Open sidebar"],
+    button[aria-label="Close sidebar"] {
+        visibility: visible !important;
+        display: block !important;
+        opacity: 1 !important;
+        z-index: 2147483647 !important;
+        position: fixed !important;
+        top: 16px !important;
+        left: 16px !important;
+        width: 48px !important;
+        height: 48px !important;
+        background: linear-gradient(135deg, #e70013, #b30010) !important;
+        border: 2px solid rgba(255,255,255,0.25) !important;
+        border-radius: 14px !important;
+        box-shadow: 0 6px 20px rgba(231,0,19,0.6) !important;
+        padding: 0 !important;
+        cursor: pointer !important;
+        pointer-events: auto !important;
+    }
+    [data-testid="stSidebarCollapsedControl"] svg,
+    [data-testid="collapsedControl"] svg {
+        fill: #ffffff !important;
+        color: #ffffff !important;
+        width: 26px !important;
+        height: 26px !important;
+        display: block !important;
     }
 
     /* SIDEBAR */
@@ -255,8 +284,6 @@ st.markdown("""
         border-bottom: 1px solid #262626 !important;
         border-radius: 0 !important;
     }
-
-    /* Kill the avatar column */
     .stChatMessage > div:first-child {
         display: none !important;
         visibility: hidden !important;
@@ -264,7 +291,6 @@ st.markdown("""
         height: 0 !important;
         overflow: hidden !important;
     }
-
     .stChatMessage > div:nth-child(2) {
         display: block !important;
         visibility: visible !important;
@@ -272,7 +298,6 @@ st.markdown("""
         margin-left: 0 !important;
         width: 100% !important;
     }
-
     .stChatMessage p {
         color: #ececec !important;
         font-size: clamp(0.9rem, 2.4vw, 1rem) !important;
@@ -345,28 +370,6 @@ st.markdown("""
         height: 18px !important;
     }
 
-    /* TOGGLE */
-    [data-testid="stSidebarCollapsedControl"],
-    [data-testid="collapsedControl"] {
-        visibility: visible !important;
-        display: block !important;
-        opacity: 1 !important;
-        z-index: 9999 !important;
-        position: fixed !important;
-        top: 1rem !important;
-        left: 1rem !important;
-        background: #262626 !important;
-        border: 1px solid #3a3a3a !important;
-        border-radius: 10px !important;
-        padding: 6px !important;
-    }
-    [data-testid="stSidebarCollapsedControl"] svg,
-    [data-testid="collapsedControl"] svg {
-        fill: #ececec !important;
-        width: 20px !important;
-        height: 20px !important;
-    }
-
     /* FOOTER */
     .footer-ds {
         text-align: center;
@@ -385,6 +388,16 @@ st.markdown("""
         margin: 1rem 0 !important;
     }
 
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+        section[data-testid="stSidebar"] {
+            min-width: 85vw !important;
+            max-width: 85vw !important;
+            width: 85vw !important;
+            z-index: 2147483646 !important;
+        }
+    }
+
     @media (max-width: 640px) {
         .block-container { padding: 0.75rem 0.9rem 6rem 0.9rem !important; }
         .hero-ds { padding: 2rem 0.5rem 1.5rem 0.5rem; }
@@ -392,14 +405,10 @@ st.markdown("""
         .hero-ds-title { font-size: 1.6rem; }
         .hero-ds-sub { font-size: 0.85rem; }
         .suggest-grid { grid-template-columns: 1fr; margin-top: 1.2rem; }
-        section[data-testid="stSidebar"] {
-            min-width: 88vw !important;
-            max-width: 88vw !important;
-            width: 88vw !important;
-        }
-        section[data-testid="stSidebar"] > div:first-child {
-            width: 88vw !important;
-        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        * { transition: none !important; animation: none !important; }
     }
     </style>
 """, unsafe_allow_html=True)
@@ -500,7 +509,16 @@ DOMAIN_MAP = {
     "📱 التسويق الرقمي": "You are a Growth Marketing Strategist.",
     "📰 التحليل الاستراتيجي": "You are a Tech Intelligence Analyst.",
 }
-BASE_IDENTITY = "You are Houssem AI, created by Houssem Kessentini from Tunisia. "
+
+# ============================================================
+# IDENTITY — with Arabic name
+# ============================================================
+BASE_IDENTITY = (
+    "You are Houssem AI (حسام الذكاء الاصطناعي), "
+    "created by Houssem Kessentini (حسام القسنطيني) from Sfax, Tunisia. "
+    "When asked who you are or who made you, always say: "
+    "'أنا Houssem AI، أول ذكاء اصطناعي تونسي، طورني حسام القسنطيني من صفاقس، تونس.' "
+)
 
 # ============================================================
 # SIDEBAR
@@ -622,7 +640,7 @@ if not st.session_state.messages:
     """, unsafe_allow_html=True)
 
 # ============================================================
-# CHAT — using emoji avatars (Streamlit accepts these)
+# CHAT
 # ============================================================
 for message in st.session_state.messages:
     avatar = "⚡" if message["role"] == "assistant" else "👤"
@@ -632,7 +650,8 @@ for message in st.session_state.messages:
 if st.session_state.messages:
     st.markdown("""
         <div class="footer-ds">
-            <strong>Houssem AI</strong> · Built in Sfax, Tunisia 🇹🇳<br>
+            <strong>Houssem AI</strong> · أول ذكاء اصطناعي تونسي<br>
+            طُوِّر بواسطة <strong>حسام القسنطيني</strong> من صفاقس، تونس 🇹🇳<br>
             Powered by Groq AI
         </div>
     """, unsafe_allow_html=True)
