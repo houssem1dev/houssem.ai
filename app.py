@@ -17,7 +17,7 @@ from security import (
 )
 
 # ============================================================
-# PAGE CONFIG
+# PAGE CONFIG (must be first Streamlit call)
 # ============================================================
 st.set_page_config(
     page_title="Houssem AI | أول ذكاء اصطناعي تونسـي",
@@ -27,19 +27,16 @@ st.set_page_config(
 )
 
 # ============================================================
-# THEME CSS
+# THEME CSS (responsive: phone / tablet / desktop)
 # ============================================================
 st.markdown("""
-  st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
 
-    /* ========== HIDE STREAMLIT CHROME ========== */
     #MainMenu, footer, header, .stDeployButton, .stToolbar,
     div[data-testid="stToolbar"], div[data-testid="stDecoration"],
     div[data-testid="stStatusWidget"] {visibility: hidden; display: none;}
 
-    /* ========== BASE / MOBILE-FIRST ========== */
     html, body, .stApp {
         background: radial-gradient(circle at 20% 20%, #1a1a2e, #16213e, #0f3460);
         font-family: 'Cairo', sans-serif;
@@ -49,14 +46,12 @@ st.markdown("""
     }
     h1,h2,h3,h4,h5,h6,p,span,div,label { color:#fff !important; }
 
-    /* Responsive container: fluid padding */
     .block-container {
         padding: 1rem 0.8rem 2rem 0.8rem;
         max-width: 1200px;
         margin: 0 auto;
     }
 
-    /* Responsive typography — scales with screen width */
     .custom-title {
         text-align: center;
         font-size: clamp(1.8rem, 6vw, 3rem);
@@ -74,7 +69,6 @@ st.markdown("""
         padding: 0 0.5rem;
     }
 
-    /* Cards: stack nicely */
     .stat-card {
         background: rgba(255,255,255,0.1);
         backdrop-filter: blur(10px);
@@ -97,7 +91,6 @@ st.markdown("""
         margin-top: 5px;
     }
 
-    /* Buttons — bigger tap targets on mobile */
     .stButton > button {
         background: linear-gradient(135deg,#e74c3c 0%,#c0392b 100%);
         color: white !important;
@@ -106,7 +99,7 @@ st.markdown("""
         font-weight: 700;
         transition: all 0.3s ease;
         box-shadow: 0 4px 15px rgba(231,76,60,0.3);
-        min-height: 44px;              /* iOS tap target */
+        min-height: 44px;
         padding: 0.6rem 1rem;
         font-size: clamp(0.85rem, 2.5vw, 1rem);
         width: 100%;
@@ -116,7 +109,6 @@ st.markdown("""
         box-shadow: 0 6px 20px rgba(231,76,60,0.5);
     }
 
-    /* Chat messages */
     .stChatMessage {
         background: rgba(255,255,255,0.05);
         border: 1px solid rgba(255,255,255,0.1);
@@ -130,14 +122,13 @@ st.markdown("""
         border: 1px solid rgba(231,76,60,0.3);
     }
 
-    /* Inputs — full width, big tap targets */
     .stTextInput input,
     .stTextArea textarea {
         background: rgba(255,255,255,0.05) !important;
         border: 1px solid rgba(255,255,255,0.2) !important;
         border-radius: 10px !important;
         color: #fff !important;
-        font-size: 16px !important;    /* prevents iOS auto-zoom */
+        font-size: 16px !important;
         min-height: 44px;
     }
     .stTextInput input:focus,
@@ -145,7 +136,6 @@ st.markdown("""
         border: 1px solid #e74c3c !important;
     }
 
-    /* Chat input */
     div[data-testid="stChatInput"] {
         background: rgba(22,33,62,0.95) !important;
         border: 1px solid rgba(255,255,255,0.2) !important;
@@ -154,10 +144,9 @@ st.markdown("""
     div[data-testid="stChatInput"] input,
     div[data-testid="stChatInput"] textarea {
         color: #fff !important;
-        font-size: 16px !important;    /* prevents iOS zoom */
+        font-size: 16px !important;
     }
 
-    /* Tabs (login/signup) */
     .stTabs [data-baseweb="tab-list"] {
         gap: 0.5rem;
         justify-content: center;
@@ -168,7 +157,6 @@ st.markdown("""
         padding: 0.5rem 1rem;
     }
 
-    /* Sidebar */
     section[data-testid="stSidebar"] {
         background: rgba(22,33,62,0.95) !important;
         border-right: 1px solid rgba(255,255,255,0.1) !important;
@@ -177,7 +165,6 @@ st.markdown("""
         font-size: 0.9rem;
     }
 
-    /* Footer */
     .footer-text {
         text-align: center;
         color: #95a5a6 !important;
@@ -188,22 +175,15 @@ st.markdown("""
 
     hr { border-color: rgba(255,255,255,0.1) !important; margin: 1rem 0; }
 
-    /* ========== MOBILE BREAKPOINTS ========== */
     @media (max-width: 768px) {
         .block-container { padding: 0.8rem 0.6rem 2rem 0.6rem; }
         .custom-title { font-size: clamp(1.6rem, 8vw, 2.2rem); }
         .custom-subtitle { font-size: 0.85rem; }
-
-        /* Stack columns on mobile */
         div[data-testid="column"] {
             width: 100% !important;
             flex: 1 1 100% !important;
             min-width: 100% !important;
         }
-
-        /* Welcome card */
-        .welcome-card { padding: 24px 16px !important; }
-        .welcome-card img, .welcome-card .flag { font-size: 40px !important; }
     }
 
     @media (max-width: 480px) {
@@ -213,37 +193,31 @@ st.markdown("""
         .stButton > button { font-size: 0.85rem; padding: 0.55rem 0.9rem; }
     }
 
-    /* Landscape phones */
     @media (max-height: 500px) and (orientation: landscape) {
         .custom-title { font-size: 1.5rem; }
         .custom-subtitle { display: none; }
     }
 
-    /* Tablets */
     @media (min-width: 769px) and (max-width: 1024px) {
         .block-container { max-width: 900px; }
     }
 
-    /* Large desktops */
     @media (min-width: 1600px) {
         .block-container { max-width: 1400px; }
     }
 
-    /* ========== TOUCH DEVICE TWEAKS ========== */
     @media (hover: none) {
         .stButton > button:hover { transform: none; }
     }
 
-    /* Reduce motion for accessibility */
     @media (prefers-reduced-motion: reduce) {
         * { transition: none !important; animation: none !important; }
     }
     </style>
 """, unsafe_allow_html=True)
-""", unsafe_allow_html=True)
 
 # ============================================================
-# AUTH GATE
+# AUTH GATE — stops app if not logged in
 # ============================================================
 username = require_auth()
 
@@ -413,6 +387,7 @@ if prompt := st.chat_input("اكتب سؤالك هنا..."):
 
     sid = st.session_state.session_id
 
+    # ---- 1. RATE LIMIT ----
     allowed, reason = limiter.check(sid)
     if not allowed:
         audit("rate_limit_hit", reason, session=sid, user=username,
@@ -420,6 +395,7 @@ if prompt := st.chat_input("اكتب سؤالك هنا..."):
         st.warning(reason)
         st.stop()
 
+    # ---- 2. VALIDATE ----
     ok, err = validate_input(prompt)
     if not ok:
         event = "harmful_blocked" if "غير مسموح" in err else "injection_blocked"
@@ -428,8 +404,10 @@ if prompt := st.chat_input("اكتب سؤالك هنا..."):
         st.error(err)
         st.stop()
 
+    # ---- 3. SANITIZE ----
     safe_prompt = sanitize_input(prompt)
 
+    # ---- 4. STORE & RENDER ----
     st.session_state.messages.append({"role": "user", "content": safe_prompt})
     st.session_state.conversation_count += 1
 
@@ -440,6 +418,7 @@ if prompt := st.chat_input("اكتب سؤالك هنا..."):
     with st.chat_message("user"):
         st.markdown(safe_prompt)
 
+    # ---- 5. CALL LLM ----
     with st.chat_message("assistant"):
         try:
             system_instruction = build_system_prompt(BASE_IDENTITY, DOMAIN_MAP[domain])
