@@ -28,24 +28,61 @@ st.set_page_config(
 )
 
 # ============================================================
-# THEME CSS
+# THEME CSS — responsive + visible sidebar toggle
 # ============================================================
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
 
+    /* Hide only the extra chrome, keep the header (for the sidebar toggle) */
     #MainMenu, footer, .stDeployButton,
     div[data-testid="stToolbar"], div[data-testid="stDecoration"],
     div[data-testid="stStatusWidget"] {
         display: none !important;
     }
 
+    /* Header: transparent, but keep the toggle button space */
     header[data-testid="stHeader"] {
         background: transparent !important;
         box-shadow: none !important;
-        height: 0 !important;
+        height: auto !important;
+        min-height: 40px !important;
     }
 
+    /* Force the sidebar toggle arrow to be visible */
+    [data-testid="stSidebarCollapsedControl"],
+    [data-testid="collapsedControl"],
+    button[kind="header"],
+    button[kind="headerNoPadding"] {
+        visibility: visible !important;
+        display: inline-flex !important;
+        opacity: 1 !important;
+        color: #fff !important;
+        background: rgba(231,76,60,0.95) !important;
+        border-radius: 8px !important;
+        margin: 6px !important;
+        padding: 6px !important;
+        z-index: 9999999 !important;
+        box-shadow: 0 4px 12px rgba(231,76,60,0.6) !important;
+    }
+
+    [data-testid="stSidebarCollapsedControl"] svg,
+    [data-testid="collapsedControl"] svg,
+    button[kind="header"] svg,
+    button[kind="headerNoPadding"] svg {
+        fill: #fff !important;
+        color: #fff !important;
+        width: 22px !important;
+        height: 22px !important;
+    }
+
+    /* Keep sidebar styled */
+    section[data-testid="stSidebar"] {
+        background: rgba(22,33,62,0.98) !important;
+        border-right: 2px solid rgba(231,76,60,0.4) !important;
+    }
+
+    /* Base */
     html, body, .stApp {
         background: radial-gradient(circle at 20% 20%, #1a1a2e, #16213e, #0f3460);
         font-family: 'Cairo', sans-serif;
@@ -164,11 +201,6 @@ st.markdown("""
     .stTabs [data-baseweb="tab"] {
         font-size: clamp(0.8rem, 2.5vw, 1rem);
         padding: 0.5rem 1rem;
-    }
-
-    section[data-testid="stSidebar"] {
-        background: rgba(22,33,62,0.98) !important;
-        border-right: 2px solid rgba(231,76,60,0.4) !important;
     }
 
     .footer-text {
@@ -347,7 +379,7 @@ with st.sidebar:
                 st.caption(f"Admin data unavailable: {e}")
 
 # ============================================================
-# TOP BAR — user info + backup logout
+# TOP BAR — user badge + backup logout
 # ============================================================
 top_left, top_center, top_right = st.columns([3, 5, 2])
 
@@ -389,6 +421,9 @@ if not st.session_state.messages:
                 مرحباً {username}
             </div>
             <div>اكتب سؤالك في الأسفل وابدأ التحليل الذكي</div>
+            <div style="margin-top:12px;font-size:0.8rem;color:#7f8c8d;">
+                💡 اضغط على زر <b>»</b> في الأعلى لفتح القائمة الجانبية
+            </div>
         </div>
     """, unsafe_allow_html=True)
 
