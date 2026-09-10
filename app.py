@@ -1,16 +1,9 @@
 import time
 from datetime import datetime
+from collections import defaultdict
 
 import streamlit as st
 from groq import Groq
-
-from security import (
-    validate_input,
-    sanitize_input,
-    build_system_prompt,
-    trim_history,
-)
-from rate_limit import RedisRateLimiter
 
 # ============================================================
 # PAGE CONFIG
@@ -23,54 +16,26 @@ st.set_page_config(
 )
 
 # ============================================================
-# CSS — clean, no header hiding, sidebar always visible
+# CSS
 # ============================================================
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
 
-    /* Hide ONLY the menu and footer, keep header so sidebar toggle works */
     #MainMenu, footer { visibility: hidden; }
     .stDeployButton { display: none; }
-    div[data-testid="stToolbar"] { display: none; }
-    div[data-testid="stDecoration"] { display: none; }
-    div[data-testid="stStatusWidget"] { display: none; }
 
-    /* Style the header dark so it blends in */
-    header[data-testid="stHeader"] {
-        background: transparent !important;
-        height: 3.5rem !important;
-    }
-
-    /* Make the sidebar toggle arrow stand out */
-    [data-testid="stSidebarCollapsedControl"] button,
-    [data-testid="collapsedControl"] button,
-    button[kind="header"] {
-        background: rgba(231,76,60,0.95) !important;
-        color: #fff !important;
-        border-radius: 8px !important;
-        border: none !important;
-    }
-    [data-testid="stSidebarCollapsedControl"] svg,
-    [data-testid="collapsedControl"] svg,
-    button[kind="header"] svg {
-        fill: #fff !important;
-        color: #fff !important;
-    }
-
-    /* Sidebar background */
-    section[data-testid="stSidebar"] {
-        background: rgba(22,33,62,0.98) !important;
-        border-right: 2px solid rgba(231,76,60,0.4) !important;
-    }
-
-    /* Base */
     html, body, .stApp {
         background: radial-gradient(circle at 20% 20%, #1a1a2e, #16213e, #0f3460);
         font-family: 'Cairo', sans-serif;
         color: #fff;
     }
     h1,h2,h3,h4,h5,h6,p,span,div,label { color:#fff !important; }
+
+    section[data-testid="stSidebar"] {
+        background: rgba(22,33,62,0.98) !important;
+        border-right: 2px solid rgba(231,76,60,0.4) !important;
+    }
 
     .block-container {
         padding: 1.5rem 1rem 2rem 1rem;
@@ -84,14 +49,12 @@ st.markdown("""
         color: #fff;
         margin-bottom: 0;
         text-shadow: 0 0 20px rgba(231,76,60,0.5);
-        line-height: 1.2;
     }
     .custom-subtitle {
         text-align: center;
         color: #bdc3c7 !important;
         font-size: clamp(0.8rem, 2.6vw, 1.1rem);
         margin-bottom: 1.5rem;
-        padding: 0 0.5rem;
     }
 
     .stat-card {
@@ -122,12 +85,7 @@ st.markdown("""
         font-weight: 700;
         min-height: 44px;
         padding: 0.6rem 1rem;
-        font-size: 0.95rem;
         width: 100%;
-    }
-    .stButton > button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(231,76,60,0.5);
     }
 
     .stChatMessage {
@@ -147,18 +105,12 @@ st.markdown("""
         border: 1px solid rgba(255,255,255,0.2) !important;
         border-radius: 12px !important;
     }
-    div[data-testid="stChatInput"] input,
-    div[data-testid="stChatInput"] textarea {
-        color: #fff !important;
-        font-size: 16px !important;
-    }
 
     .footer-text {
         text-align: center;
         color: #95a5a6 !important;
         padding: 20px 10px;
         font-size: 0.85rem;
-        line-height: 1.5;
     }
 
     hr { border-color: rgba(255,255,255,0.1) !important; margin: 1rem 0; }
@@ -166,7 +118,16 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ============================================================
-# CLIENT IP
+# GROQ CLIENT
+# ============================================================
+@st.cache_resource(show_spinner=False)
+def get_groq_client():
+    return Groq(api_key=st.secrets["GROQ_API_KEY"], max_retries=3, timeout=60.0)
+
+client = get_groq_client()
+
+# ============================================================
+# IP + IN-MEMORY RATE LIMIT (no Redis)
 # ============================================================
 def get_client_ip() -> str:
     try:
@@ -181,24 +142,47 @@ def get_client_ip() -> str:
         pass
     return "unknown"
 
-
-# ============================================================
-# CACHED RESOURCES
-# ============================================================
-@st.cache_resource(show_spinner=False)
-def get_groq_client():
-    return Groq(api_key=st.secrets["GROQ_API_KEY"], max_retries=3, timeout=60.0)
-
-
-@st.cache_resource(show_spinner=False)
-def get_rate_limiter():
-    redis_url = st.secrets.get("REDIS_URL", "redis://localhost:6379/0")
-    return RedisRateLimiter(redis_url)
-
-
-client = get_groq_client()
-limiter = get_rate_limiter()
 client_ip = get_client_ip()
+
+# Rate limit config
+LIMITS = {
+    "minute": (15, 60),
+    "hour":   (200, 3600),
+    "day":    (1500, 86400),
+}
+
+# In-memory store (resets on restart — good enough for Streamlit Cloud free tier)
+if "_rate_store" not in st.session_state:
+    st.session_state._rate_store = defaultdict(list)
+
+def rate_check(ip: str):
+    now = time.time()
+    store = st.session_state._rate_store
+    key = f"ip:{ip}"
+
+    # prune + count
+    for window, (limit, seconds) in LIMITS.items():
+        store[f"{key}:{window}"] = [
+            t for t in store[f"{key}:{window}"] if t > now - seconds
+        ]
+        if len(store[f"{key}:{window}"]) >= limit:
+            return False, f"⏳ تجاوزت الحد ({limit} طلب). حاول لاحقاً."
+
+    # record
+    for window in LIMITS:
+        store[f"{key}:{window}"].append(now)
+    return True, ""
+
+def rate_usage(ip: str):
+    now = time.time()
+    store = st.session_state._rate_store
+    key = f"ip:{ip}"
+    out = {}
+    for window, (_limit, seconds) in LIMITS.items():
+        out[window] = len([
+            t for t in store[f"{key}:{window}"] if t > now - seconds
+        ])
+    return out
 
 # ============================================================
 # SESSION STATE
@@ -232,7 +216,7 @@ DOMAIN_MAP = {
 BASE_IDENTITY = "You are Houssem AI, created by Houssem Kessentini. "
 
 # ============================================================
-# SIDEBAR — all controls
+# SIDEBAR
 # ============================================================
 with st.sidebar:
     st.markdown("## ⚡ Houssem AI")
@@ -252,7 +236,7 @@ with st.sidebar:
     st.markdown("### 📊 استهلاكك")
 
     try:
-        usage = limiter.get_usage(f"ip:{client_ip}")
+        usage = rate_usage(client_ip)
         limits_map = {"minute": 15, "hour": 200, "day": 1500}
         labels_map = {"minute": "دقيقة", "hour": "ساعة", "day": "يوم"}
         for window, count in usage.items():
@@ -260,8 +244,8 @@ with st.sidebar:
             label = labels_map.get(window, window)
             pct = min(count / limit, 1.0) if limit else 0.0
             st.progress(pct, text=f"{label}: {count}/{limit}")
-    except Exception:
-        st.caption("معلومات الاستهلاك غير متاحة.")
+    except Exception as e:
+        st.caption(f"استهلاك غير متاح: {e}")
 
     st.markdown("---")
 
@@ -331,34 +315,29 @@ for message in st.session_state.messages:
 st.markdown('<hr>', unsafe_allow_html=True)
 
 # ============================================================
-# INPUT
+# CHAT INPUT
 # ============================================================
 if prompt := st.chat_input("اكتب سؤالك هنا..."):
 
-    rate_key = f"ip:{client_ip}"
-    allowed, reason = limiter.check(rate_key)
+    # Rate limit
+    allowed, reason = rate_check(client_ip)
     if not allowed:
         st.warning(reason)
         st.stop()
 
-    ok, err = validate_input(prompt)
-    if not ok:
-        st.error(err)
-        st.stop()
-
-    safe_prompt = sanitize_input(prompt)
-
-    st.session_state.messages.append({"role": "user", "content": safe_prompt})
+    # Store + show user message
+    st.session_state.messages.append({"role": "user", "content": prompt})
     st.session_state.conversation_count += 1
 
     with st.chat_message("user"):
-        st.markdown(safe_prompt)
+        st.markdown(prompt)
 
+    # LLM call
     with st.chat_message("assistant"):
         try:
-            system_instruction = build_system_prompt(BASE_IDENTITY, DOMAIN_MAP[domain])
-            history = trim_history(st.session_state.messages, 20)
+            system_instruction = BASE_IDENTITY + DOMAIN_MAP[domain]
 
+            history = st.session_state.messages[-20:]
             api_messages = [{"role": "system", "content": system_instruction}]
             api_messages.extend(
                 {"role": m["role"], "content": m["content"]} for m in history
@@ -393,8 +372,11 @@ if prompt := st.chat_input("اكتب سؤالك هنا..."):
             )
 
         except Exception as e:
-            st.error("❌ حدث خطأ تقني. الرجاء المحاولة مرة أخرى.")
+            st.error(f"❌ خطأ تقني: {e}")
 
+# ============================================================
+# FOOTER
+# ============================================================
 st.markdown("""
     <div class="footer-text">
         🇹🇳 Developed with ❤️ in <strong>Sfax, Tunisia</strong>
