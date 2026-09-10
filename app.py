@@ -385,6 +385,37 @@ st.markdown("""
         margin: 1rem 0 !important;
     }
 
+    /* ============================================================
+       🔧 FIX: Pin the ☰ button to top-left corner
+       ============================================================ */
+    div[data-testid="stVerticalBlock"] > div:has(button[key="sidebar_toggle_btn"]) {
+        position: fixed !important;
+        top: 16px !important;
+        left: 16px !important;
+        z-index: 2147483647 !important;
+        width: 56px !important;
+        height: 56px !important;
+    }
+    button[key="sidebar_toggle_btn"] {
+        background: linear-gradient(135deg, #e70013, #b30010) !important;
+        color: #fff !important;
+        border: 2px solid rgba(255,255,255,0.25) !important;
+        border-radius: 14px !important;
+        width: 48px !important;
+        height: 48px !important;
+        min-width: 48px !important;
+        min-height: 48px !important;
+        font-size: 24px !important;
+        font-weight: 700 !important;
+        box-shadow: 0 6px 20px rgba(231,0,19,0.6) !important;
+        padding: 0 !important;
+        line-height: 1 !important;
+    }
+    button[key="sidebar_toggle_btn"]:hover {
+        transform: scale(1.08);
+        box-shadow: 0 8px 24px rgba(231,0,19,0.8) !important;
+    }
+
     @media (max-width: 768px) {
         section[data-testid="stSidebar"] {
             min-width: 88vw !important;
@@ -408,18 +439,6 @@ st.markdown("""
     }
     </style>
 """, unsafe_allow_html=True)
-
-# ============================================================
-# SIDEBAR TOGGLE BUTTON
-# ============================================================
-if "sidebar_open" not in st.session_state:
-    st.session_state.sidebar_open = True
-
-toggle_col1, toggle_col2, toggle_col3 = st.columns([0.12, 0.76, 0.12])
-with toggle_col1:
-    if st.button("☰", key="sidebar_toggle_btn", help="فتح / إغلاق القائمة"):
-        st.session_state.sidebar_open = not st.session_state.sidebar_open
-        st.rerun()
 
 # ============================================================
 # GROQ
@@ -506,9 +525,11 @@ if "conversation_count" not in st.session_state:
     st.session_state.conversation_count = 0
 if "domain_choice" not in st.session_state:
     st.session_state.domain_choice = ""
+if "sidebar_open" not in st.session_state:
+    st.session_state.sidebar_open = True
 
 # ============================================================
-# 🎯 YOUR NAME — change this line to change it everywhere
+# 🎯 YOUR NAME
 # ============================================================
 MY_NAME_AR = "حسام القسنطيني"
 MY_NAME_EN = "Houssem Kessentini"
@@ -525,32 +546,63 @@ DOMAIN_MAP = {
 }
 
 # ============================================================
-# 🎯 AI IDENTITY — Always introduce حسام القسنطيني on greetings
+# AI IDENTITY — Always introduce حسام القسنطيني
 # ============================================================
 BASE_IDENTITY = (
     "You are Houssem AI (حسام الذكاء الاصطناعي), "
     f"created by {MY_NAME_EN} ({MY_NAME_AR}) from Sfax, Tunisia. "
     "CRITICAL RULES — Follow at all times:\n"
     "1. If the user greets you in ANY language (hi, hello, hey, bonjour, "
-    "salut, مرحبا, أهلا, أهلاً, السلام عليكم, صباح الخير, or any greeting), "
-    f"your response MUST begin by introducing your creator '{MY_NAME_AR}' "
-    f"(also known as {MY_NAME_EN}) and mention that you are "
+    "salut, مرحبا, أهلا, السلام عليكم), your response MUST begin by introducing "
+    f"your creator '{MY_NAME_AR}' and mention that you are "
     "'Houssem AI, the first Tunisian AI' (أول ذكاء اصطناعي تونسي).\n"
-    "2. If the user asks who you are, who created you, who made you, who developed you, "
-    "or any question like 'من أنت', 'من صنعك', 'من طورك', 'من صممك', 'who made you', "
-    f"'who created you', always answer: 'أنا Houssem AI، أول ذكاء اصطناعي تونسي، "
-    f"طورني {MY_NAME_AR} من صفاقس، تونس.'\n"
-    "3. Always respond in the SAME language the user writes in "
-    "(Arabic → Arabic, English → English, French → French).\n"
-    "4. If greeting in English: 'Hello! I'm Houssem AI, the first Tunisian AI, "
+    "2. If the user asks who you are, always answer: "
+    f"'أنا Houssem AI، أول ذكاء اصطناعي تونسي، طورني {MY_NAME_AR} من صفاقس، تونس.'\n"
+    "3. Respond in the SAME language the user writes in.\n"
+    "4. English greeting: 'Hello! I'm Houssem AI, the first Tunisian AI, "
     f"created by {MY_NAME_AR}. How can I help you?'\n"
-    "5. If greeting in Arabic: 'مرحباً! أنا Houssem AI، أول ذكاء اصطناعي تونسي، "
+    "5. Arabic greeting: 'مرحباً! أنا Houssem AI، أول ذكاء اصطناعي تونسي، "
     f"طوّرني {MY_NAME_AR} من صفاقس. كيف يمكنني مساعدتك؟'\n"
-    "6. If greeting in French: 'Bonjour ! Je suis Houssem AI, la première IA tunisienne, "
-    f"créée par {MY_NAME_AR}. Comment puis-je vous aider ?'\n"
-    "7. After introducing your creator, ONLY THEN proceed to help the user with "
-    "their question in the selected domain.\n"
 )
+
+# ============================================================
+# 🔧 SIDEBAR TOGGLE BUTTON (top-left, fixed position)
+# ============================================================
+if st.button("☰", key="sidebar_toggle_btn", help="فتح / إغلاق القائمة"):
+    st.session_state.sidebar_open = not st.session_state.sidebar_open
+    st.rerun()
+
+# ============================================================
+# 🔧 TOP BAR — your name in the top-right of the interface
+# ============================================================
+st.markdown(f"""
+    <div style="
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        padding: 4px 12px 12px 12px;
+        margin-bottom: 8px;
+        min-height: 40px;
+    ">
+        <div style="
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(231,0,19,0.12);
+            border: 1px solid rgba(231,0,19,0.35);
+            border-radius: 20px;
+            padding: 5px 14px;
+        ">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/c/ce/Flag_of_Tunisia.svg"
+                 style="width:18px;height:18px;border-radius:50%;" />
+            <span style="
+                font-size: 0.85rem;
+                font-weight: 700;
+                color: #ececec;
+            ">{MY_NAME_AR}</span>
+        </div>
+    </div>
+""", unsafe_allow_html=True)
 
 # ============================================================
 # SIDEBAR
@@ -664,93 +716,4 @@ if not st.session_state.messages:
                 <div class="suggest-desc">تحليل الثغرات والأمن السيبراني</div>
             </div>
             <div class="suggest-card">
-                <div class="suggest-title">💻 كود احترافي</div>
-                <div class="suggest-desc">تطوير ويب وتطبيقات</div>
-            </div>
-            <div class="suggest-card">
-                <div class="suggest-title">📈 تحليل الأسواق</div>
-                <div class="suggest-desc">استراتيجيات التداول</div>
-            </div>
-            <div class="suggest-card">
-                <div class="suggest-title">📰 تحليل الأخبار</div>
-                <div class="suggest-desc">أخبار التقنية والذكاء الاصطناعي</div>
-            </div>
-        </div>
-    """, unsafe_allow_html=True)
-
-# ============================================================
-# CHAT
-# ============================================================
-for message in st.session_state.messages:
-    avatar = "⚡" if message["role"] == "assistant" else "👤"
-    with st.chat_message(message["role"], avatar=avatar):
-        st.markdown(message["content"])
-
-# ============================================================
-# FOOTER
-# ============================================================
-if st.session_state.messages:
-    st.markdown(
-        '<div class="footer-ds">'
-        f'<strong>{MY_NAME_AR}</strong> · أول ذكاء اصطناعي تونسي<br>'
-        'من صفاقس، تونس 🇹🇳<br>'
-        'Powered by Groq AI'
-        '</div>',
-        unsafe_allow_html=True
-    )
-
-# ============================================================
-# INPUT
-# ============================================================
-if prompt := st.chat_input("اكتب رسالتك هنا..."):
-
-    allowed, reason = rate_check(client_ip)
-    if not allowed:
-        st.warning(reason)
-        st.stop()
-
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    st.session_state.conversation_count += 1
-
-    with st.chat_message("user", avatar="👤"):
-        st.markdown(prompt)
-
-    with st.chat_message("assistant", avatar="⚡"):
-        try:
-            system_instruction = BASE_IDENTITY + DOMAIN_MAP[domain]
-            history = st.session_state.messages[-20:]
-            api_messages = [{"role": "system", "content": system_instruction}]
-            api_messages.extend(
-                {"role": m["role"], "content": m["content"]} for m in history
-            )
-
-            stream = client.chat.completions.create(
-                model="openai/gpt-oss-20b",
-                messages=api_messages,
-                temperature=0.4,
-                max_tokens=2048,
-                stream=True,
-            )
-
-            full_response = ""
-            placeholder = st.empty()
-            buffer = []
-
-            for chunk in stream:
-                if chunk.choices and chunk.choices[0].delta.content:
-                    buffer.append(chunk.choices[0].delta.content)
-                    if len(buffer) >= 5:
-                        full_response += "".join(buffer)
-                        buffer.clear()
-                        placeholder.markdown(full_response + "▌")
-
-            if buffer:
-                full_response += "".join(buffer)
-            placeholder.markdown(full_response)
-
-            st.session_state.messages.append(
-                {"role": "assistant", "content": full_response}
-            )
-
-        except Exception as e:
-            st.error(f"❌ خطأ تقني: {e}")
+                <div class
