@@ -23,7 +23,7 @@ st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
 
-    /* -------- Kill the black top bar -------- */
+    /* ========== KILL ALL STREAMLIT CHROME ========== */
     header[data-testid="stHeader"] {
         display: none !important;
         height: 0 !important;
@@ -36,7 +36,7 @@ st.markdown("""
     .stDeployButton { display: none !important; }
     div[data-testid="stStatusWidget"] { display: none !important; }
 
-    /* Keep sidebar toggle alive even with header hidden */
+    /* ========== FLOATING SIDEBAR TOGGLE ========== */
     [data-testid="stSidebarCollapsedControl"],
     [data-testid="collapsedControl"] {
         visibility: visible !important;
@@ -44,11 +44,11 @@ st.markdown("""
         opacity: 1 !important;
         z-index: 999999 !important;
         position: fixed !important;
-        top: 10px !important;
-        left: 10px !important;
+        top: 12px !important;
+        left: 12px !important;
         background: linear-gradient(135deg,#e74c3c,#c0392b) !important;
         border-radius: 10px !important;
-        padding: 6px 8px !important;
+        padding: 8px 10px !important;
         box-shadow: 0 4px 15px rgba(231,76,60,0.6) !important;
     }
     [data-testid="stSidebarCollapsedControl"] svg,
@@ -59,28 +59,33 @@ st.markdown("""
         height: 24px !important;
     }
 
-    /* -------- Base -------- */
-    html, body, .stApp {
-        background: radial-gradient(circle at 20% 20%, #1a1a2e, #16213e, #0f3460);
+    /* ========== BASE ========== */
+    html, body {
+        background: radial-gradient(circle at 20% 20%, #1a1a2e, #16213e, #0f3460) !important;
         font-family: 'Cairo', sans-serif;
-        color: #fff !important;
         overflow-x: hidden !important;
         -webkit-text-size-adjust: 100%;
+        margin: 0;
+        padding: 0;
     }
+    .stApp, .stApp > div, section.main, .main, [data-testid="stAppViewContainer"] {
+        background: radial-gradient(circle at 20% 20%, #1a1a2e, #16213e, #0f3460) !important;
+    }
+
     h1,h2,h3,h4,h5,h6,p,span,div,label,small,strong { color:#fff !important; }
     *, *::before, *::after { box-sizing: border-box; }
 
     .block-container,
     section.main > div {
-        padding: 0.8rem 0.8rem 4rem 0.8rem !important;
+        padding: 1rem 0.8rem 4rem 0.8rem !important;
         max-width: 100% !important;
         width: 100% !important;
     }
 
-    /* -------- Title -------- */
+    /* ========== TITLE ========== */
     .custom-title {
         text-align: center;
-        font-size: clamp(1.3rem, 5vw + 0.5rem, 2.6rem);
+        font-size: clamp(1.4rem, 5vw + 0.5rem, 2.6rem);
         font-weight: 900;
         color: #fff !important;
         margin: 0 0 0 0;
@@ -98,7 +103,7 @@ st.markdown("""
         line-height: 1.5;
     }
 
-    /* -------- Welcome -------- */
+    /* ========== WELCOME ========== */
     .welcome-box {
         text-align: center;
         padding: clamp(15px, 4vw, 30px) clamp(10px, 3vw, 20px);
@@ -121,28 +126,15 @@ st.markdown("""
         line-height: 1.6;
     }
 
-    /* ======================================================
-       SIDEBAR
-       ====================================================== */
+    /* ========== SIDEBAR ========== */
     section[data-testid="stSidebar"] {
         background: linear-gradient(180deg, #16213e 0%, #0f3460 100%) !important;
         border-right: 2px solid rgba(231,76,60,0.4) !important;
-        box-shadow: 4px 0 20px rgba(0,0,0,0.3);
     }
     section[data-testid="stSidebar"] > div:first-child {
         padding: 1rem 0.9rem 2rem 0.9rem !important;
     }
     section[data-testid="stSidebar"] * { color: #fff !important; }
-
-    section[data-testid="stSidebar"] h2 {
-        font-size: 1.3rem !important;
-        font-weight: 900 !important;
-        text-align: center;
-        padding: 0.3rem 0 0.4rem 0;
-        border-bottom: 2px solid rgba(231,76,60,0.4);
-        margin-bottom: 0.8rem !important;
-    }
-
     section[data-testid="stSidebar"] h3 {
         font-size: 0.95rem !important;
         color: #e74c3c !important;
@@ -153,33 +145,24 @@ st.markdown("""
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
-
-    /* Dropdown (dark) */
     section[data-testid="stSidebar"] div[data-baseweb="select"] > div {
         background: rgba(231,76,60,0.12) !important;
         border: 1px solid rgba(231,76,60,0.5) !important;
         color: #fff !important;
         border-radius: 10px !important;
-        font-size: 0.9rem !important;
         min-height: 42px;
     }
-    div[data-baseweb="popover"] * {
-        background: #16213e !important;
-        color: #fff !important;
-    }
+    div[data-baseweb="popover"] * { background: #16213e !important; color: #fff !important; }
     ul[role="listbox"] { background: #16213e !important; }
     li[role="option"] {
         background: #16213e !important;
         color: #fff !important;
-        font-size: 0.9rem !important;
         padding: 8px 12px !important;
     }
     li[role="option"]:hover,
     li[role="option"][aria-selected="true"] {
         background: rgba(231,76,60,0.3) !important;
     }
-
-    /* Sidebar buttons */
     section[data-testid="stSidebar"] .stButton > button {
         background: linear-gradient(135deg,#e74c3c 0%,#c0392b 100%) !important;
         color: #fff !important;
@@ -187,24 +170,11 @@ st.markdown("""
         border-radius: 10px !important;
         font-weight: 700 !important;
         min-height: 42px !important;
-        font-size: 0.9rem !important;
         width: 100% !important;
-        transition: all 0.25s ease;
-    }
-    section[data-testid="stSidebar"] .stButton > button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(231,76,60,0.5);
     }
 
-    /* ======================================================
-       USAGE BARS — redesigned, colorful, clean
-       ====================================================== */
-    .usage-container {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        margin-top: 8px;
-    }
+    /* ========== USAGE BARS ========== */
+    .usage-container { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
     .usage-item {
         background: rgba(255,255,255,0.04);
         border: 1px solid rgba(255,255,255,0.08);
@@ -219,12 +189,7 @@ st.markdown("""
         font-weight: 700;
         margin-bottom: 6px;
     }
-    .usage-label {
-        color: #ecf0f1 !important;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
+    .usage-label { color: #ecf0f1 !important; display: flex; align-items: center; gap: 6px; }
     .usage-count {
         color: #fff !important;
         font-weight: 900;
@@ -241,25 +206,12 @@ st.markdown("""
         border-radius: 4px;
         overflow: hidden;
     }
-    .usage-fill {
-        height: 100%;
-        border-radius: 4px;
-        transition: width 0.4s ease;
-    }
-    .usage-fill-green {
-        background: linear-gradient(90deg, #27ae60, #2ecc71);
-        box-shadow: 0 0 8px rgba(46,204,113,0.5);
-    }
-    .usage-fill-yellow {
-        background: linear-gradient(90deg, #f39c12, #f1c40f);
-        box-shadow: 0 0 8px rgba(241,196,15,0.5);
-    }
-    .usage-fill-red {
-        background: linear-gradient(90deg, #c0392b, #e74c3c);
-        box-shadow: 0 0 8px rgba(231,76,60,0.5);
-    }
+    .usage-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease; }
+    .usage-fill-green { background: linear-gradient(90deg,#27ae60,#2ecc71); box-shadow: 0 0 8px rgba(46,204,113,0.5); }
+    .usage-fill-yellow { background: linear-gradient(90deg,#f39c12,#f1c40f); box-shadow: 0 0 8px rgba(241,196,15,0.5); }
+    .usage-fill-red { background: linear-gradient(90deg,#c0392b,#e74c3c); box-shadow: 0 0 8px rgba(231,76,60,0.5); }
 
-    /* -------- Stat cards -------- */
+    /* ========== STAT CARDS ========== */
     .stat-card {
         background: rgba(255,255,255,0.06);
         border: 1px solid rgba(255,255,255,0.12);
@@ -280,7 +232,7 @@ st.markdown("""
         margin-top: 3px;
     }
 
-    /* -------- Chat messages -------- */
+    /* ========== CHAT MESSAGES ========== */
     .stChatMessage {
         background: rgba(255,255,255,0.05) !important;
         border: 1px solid rgba(255,255,255,0.1) !important;
@@ -289,35 +241,47 @@ st.markdown("""
         margin-bottom: 10px !important;
         font-size: clamp(0.85rem, 1vw + 0.5rem, 1rem) !important;
         line-height: 1.6 !important;
-        max-width: 100% !important;
         word-wrap: break-word;
     }
     .stChatMessage.user {
         background: rgba(231,76,60,0.12) !important;
         border: 1px solid rgba(231,76,60,0.35) !important;
     }
-    .stChatMessage p {
-        line-height: 1.6 !important;
-        margin: 0 !important;
-        word-wrap: break-word !important;
+
+    /* ======================================================
+       FIX: CHAT INPUT BOTTOM BAR — this is the black strip!
+       ====================================================== */
+    div[data-testid="stBottom"],
+    div[data-testid="stBottom"] > div,
+    div[data-testid="stBottomBlockContainer"],
+    div[data-testid="stBottom"] > div:first-child {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
     }
 
-    /* -------- Chat input -------- */
     div[data-testid="stChatInput"] {
         background: #16213e !important;
-        border: 2px solid rgba(231,76,60,0.5) !important;
-        border-radius: 12px !important;
-        margin: 0 auto !important;
-        max-width: 100% !important;
+        border: 2px solid rgba(231,76,60,0.6) !important;
+        border-radius: 14px !important;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.4) !important;
     }
-    div[data-testid="stChatInput"] textarea,
-    div[data-testid="stChatInput"] input {
+    div[data-testid="stChatInput"] textarea {
         color: #fff !important;
-        font-size: clamp(0.95rem, 1vw + 0.5rem, 1rem) !important;
         background: transparent !important;
+        font-size: 16px !important;
+    }
+    div[data-testid="stChatInput"] button {
+        background: linear-gradient(135deg,#e74c3c 0%,#c0392b 100%) !important;
+        border: none !important;
+    }
+    div[data-testid="stChatInput"] button svg {
+        fill: #fff !important;
+        color: #fff !important;
     }
 
-    /* -------- Footer -------- */
+    /* ========== FOOTER ========== */
     .footer-text {
         text-align: center;
         color: #7f8c8d !important;
@@ -331,14 +295,9 @@ st.markdown("""
         margin: 0.8rem 0 !important;
     }
 
-    /* ======================================================
-       ADAPTIVE BREAKPOINTS
-       ====================================================== */
-    @media (max-width: 400px) {
-        .block-container { padding: 0.5rem 0.5rem 4rem 0.5rem !important; }
-    }
+    /* ========== RESPONSIVE ========== */
     @media (max-width: 768px) {
-        .block-container { padding: 0.6rem 0.6rem 4rem 0.6rem !important; }
+        .block-container { padding: 0.6rem 0.6rem 5rem 0.6rem !important; }
         div[data-testid="column"] {
             width: 100% !important;
             flex: 1 1 100% !important;
@@ -349,14 +308,8 @@ st.markdown("""
             max-width: 88vw !important;
         }
     }
-    @media (min-width: 1025px) and (max-width: 1440px) {
+    @media (min-width: 1025px) {
         .block-container { max-width: 1000px !important; margin: 0 auto !important; }
-    }
-    @media (min-width: 1441px) {
-        .block-container { max-width: 1200px !important; margin: 0 auto !important; }
-    }
-    @media (hover: none) {
-        .stButton > button:hover { transform: none; }
     }
     @media (prefers-reduced-motion: reduce) {
         * { transition: none !important; animation: none !important; }
@@ -500,7 +453,6 @@ with st.sidebar:
     st.markdown("---")
     st.markdown("### 📊 استهلاكك")
 
-    # ---- Custom colorful usage bars ----
     try:
         usage = rate_usage(client_ip)
         limits_map = {"minute": 15, "hour": 200, "day": 1500}
@@ -508,7 +460,6 @@ with st.sidebar:
         labels_map = {"minute": "الدقيقة", "hour": "الساعة", "day": "اليوم"}
 
         st.markdown('<div class="usage-container">', unsafe_allow_html=True)
-
         for window in ["minute", "hour", "day"]:
             count = usage.get(window, 0)
             limit = limits_map[window]
@@ -516,7 +467,6 @@ with st.sidebar:
             label = labels_map[window]
             pct = (count / limit) * 100 if limit else 0
 
-            # Color based on usage
             if pct < 50:
                 fill_class = "usage-fill-green"
             elif pct < 85:
@@ -535,7 +485,6 @@ with st.sidebar:
                     </div>
                 </div>
             """, unsafe_allow_html=True)
-
         st.markdown('</div>', unsafe_allow_html=True)
     except Exception:
         st.caption("استهلاك غير متاح")
