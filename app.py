@@ -6,9 +6,6 @@ import streamlit as st
 import requests
 from groq import Groq
 
-# ============================================================
-# PAGE CONFIG
-# ============================================================
 st.set_page_config(
     page_title="Houssem AI",
     page_icon="⚡",
@@ -16,24 +13,15 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# ============================================================
-# META
-# ============================================================
 st.markdown("""
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#1a1a1a">
 """, unsafe_allow_html=True)
 
-# ============================================================
-# DEEPSEEK-STYLE CSS — Tunisian Edition
-# ============================================================
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap');
 
-    /* ============================================================
-       RESET
-       ============================================================ */
     *, *::before, *::after { box-sizing: border-box; }
     html, body {
         margin: 0; padding: 0;
@@ -44,43 +32,27 @@ st.markdown("""
         overflow-x: hidden;
     }
 
-    /* ============================================================
-       HIDE CHROME
-       ============================================================ */
     #MainMenu, footer { visibility: hidden; }
     header[data-testid="stHeader"] { display: none !important; }
     div[data-testid="stToolbar"] { display: none !important; }
     div[data-testid="stDecoration"] { display: none !important; }
     .stDeployButton { display: none !important; }
 
-    /* ============================================================
-       APP BACKGROUND
-       ============================================================ */
-    .stApp, [data-testid="stAppViewContainer"] {
-        background: #1a1a1a !important;
-    }
+    .stApp, [data-testid="stAppViewContainer"] { background: #1a1a1a !important; }
     section.main { background: #1a1a1a !important; }
 
-    /* ============================================================
-       MAIN CONTAINER
-       ============================================================ */
     .block-container {
         padding: 1rem 1rem 5rem 1rem !important;
         max-width: 820px !important;
         margin: 0 auto !important;
     }
 
-    /* ============================================================
-       TYPOGRAPHY
-       ============================================================ */
     h1,h2,h3,h4,h5,h6,p,span,div,label,li,a {
         color: #ececec !important;
         font-family: 'Cairo', sans-serif !important;
     }
 
-    /* ============================================================
-       SIDEBAR — DeepSeek style (slim, dark, calm)
-       ============================================================ */
+    /* SIDEBAR */
     section[data-testid="stSidebar"] {
         background: #141414 !important;
         border-right: 1px solid #2a2a2a !important;
@@ -97,56 +69,33 @@ st.markdown("""
         overflow: visible !important;
     }
 
-    /* Sidebar brand */
     .sidebar-brand {
-        display: flex;
-        align-items: center;
-        gap: 0.6rem;
+        display: flex; align-items: center; gap: 0.6rem;
         padding: 0.4rem 0.4rem 1.2rem 0.4rem;
         border-bottom: 1px solid #2a2a2a;
         margin-bottom: 1.1rem;
     }
     .sidebar-logo {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 34px;
-        height: 34px;
-        background: #e70013;
-        border-radius: 9px;
-        font-size: 1.1rem;
-        flex-shrink: 0;
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 34px; height: 34px; background: #e70013;
+        border-radius: 9px; font-size: 1.1rem; flex-shrink: 0;
         position: relative;
     }
     .sidebar-logo::after {
-        content: "";
-        position: absolute;
-        width: 12px;
-        height: 12px;
-        background: #fff;
-        border-radius: 50%;
-        left: 8px;
-        top: 10px;
+        content: ""; position: absolute;
+        width: 12px; height: 12px; background: #fff;
+        border-radius: 50%; left: 8px; top: 10px;
     }
     .sidebar-logo::before {
-        content: "";
-        position: absolute;
-        width: 10px;
-        height: 10px;
-        background: #e70013;
-        border-radius: 50%;
-        left: 12px;
-        top: 11px;
-        z-index: 1;
+        content: ""; position: absolute;
+        width: 10px; height: 10px; background: #e70013;
+        border-radius: 50%; left: 12px; top: 11px; z-index: 1;
     }
     .sidebar-name {
-        font-size: 1rem;
-        font-weight: 700;
-        color: #fff !important;
-        letter-spacing: -0.01em;
+        font-size: 1rem; font-weight: 700;
+        color: #fff !important; letter-spacing: -0.01em;
     }
 
-    /* Section labels */
     section[data-testid="stSidebar"] h3 {
         font-size: 0.7rem !important;
         color: #8a8a8a !important;
@@ -158,7 +107,6 @@ st.markdown("""
         border: none !important;
     }
 
-    /* Sidebar buttons */
     section[data-testid="stSidebar"] .stButton > button {
         background: #1f1f1f !important;
         color: #ececec !important;
@@ -176,7 +124,6 @@ st.markdown("""
         border-color: #3a3a3a !important;
     }
 
-    /* Dropdown */
     section[data-testid="stSidebar"] div[data-baseweb="select"] > div {
         background: #1f1f1f !important;
         border: 1px solid #2f2f2f !important;
@@ -185,10 +132,6 @@ st.markdown("""
         min-height: 42px;
         font-size: 0.85rem !important;
         direction: rtl !important;
-    }
-    section[data-testid="stSidebar"] div[data-baseweb="select"] svg {
-        color: #8a8a8a !important;
-        fill: #8a8a8a !important;
     }
     div[data-baseweb="popover"] * {
         background: #1f1f1f !important;
@@ -211,14 +154,8 @@ st.markdown("""
         background: #2a2a2a !important;
     }
 
-    /* ============================================================
-       USAGE BARS — minimal, DeepSeek-like
-       ============================================================ */
-    .usage-mini {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-    }
+    /* USAGE */
+    .usage-mini { display: flex; flex-direction: column; gap: 0.5rem; }
     .usage-item-mini {
         background: #1a1a1a;
         border: 1px solid #262626;
@@ -226,37 +163,23 @@ st.markdown("""
         padding: 0.6rem 0.75rem;
     }
     .usage-head-mini {
-        display: flex;
-        justify-content: space-between;
-        font-size: 0.72rem;
-        color: #b8b8b8 !important;
-        font-weight: 500;
-        margin-bottom: 0.35rem;
+        display: flex; justify-content: space-between;
+        font-size: 0.72rem; color: #b8b8b8 !important;
+        font-weight: 500; margin-bottom: 0.35rem;
     }
     .usage-bar-mini {
-        height: 4px;
-        background: #262626;
-        border-radius: 2px;
-        overflow: hidden;
+        height: 4px; background: #262626;
+        border-radius: 2px; overflow: hidden;
     }
     .usage-bar-mini-fill {
-        height: 100%;
-        background: #e70013;
-        border-radius: 2px;
-        transition: width 0.3s ease;
+        height: 100%; background: #e70013;
+        border-radius: 2px; transition: width 0.3s ease;
     }
 
-    /* ============================================================
-       STATS — minimal row
-       ============================================================ */
-    .stats-mini {
-        display: flex;
-        gap: 0.4rem;
-        flex-wrap: wrap;
-    }
+    /* STATS */
+    .stats-mini { display: flex; gap: 0.4rem; flex-wrap: wrap; }
     .stat-mini {
-        flex: 1;
-        min-width: 70px;
+        flex: 1; min-width: 70px;
         background: #1a1a1a;
         border: 1px solid #262626;
         border-radius: 10px;
@@ -264,74 +187,51 @@ st.markdown("""
         text-align: center;
     }
     .stat-mini-num {
-        font-size: 1.05rem;
-        font-weight: 700;
-        color: #fff !important;
-        line-height: 1;
+        font-size: 1.05rem; font-weight: 700;
+        color: #fff !important; line-height: 1;
         font-variant-numeric: tabular-nums;
     }
     .stat-mini-label {
-        font-size: 0.62rem;
-        color: #8a8a8a !important;
-        margin-top: 0.2rem;
-        text-transform: uppercase;
+        font-size: 0.62rem; color: #8a8a8a !important;
+        margin-top: 0.2rem; text-transform: uppercase;
         letter-spacing: 0.05em;
     }
 
-    /* ============================================================
-       HERO — Tunisian touch, DeepSeek style
-       ============================================================ */
-    .hero-ds {
-        text-align: center;
-        padding: 3rem 1rem 2rem 1rem;
-    }
+    /* HERO */
+    .hero-ds { text-align: center; padding: 3rem 1rem 2rem 1rem; }
     .hero-ds-logo {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 72px;
-        height: 72px;
-        background: #e70013;
-        border-radius: 20px;
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 72px; height: 72px;
+        background: #e70013; border-radius: 20px;
         margin-bottom: 1.25rem;
         position: relative;
         box-shadow: 0 8px 32px rgba(231,0,19,0.25);
     }
     .hero-ds-logo::after {
-        content: "★";
-        position: absolute;
-        color: #fff;
-        font-size: 1.6rem;
-        top: 50%;
-        left: 50%;
+        content: "★"; position: absolute;
+        color: #fff; font-size: 1.6rem;
+        top: 50%; left: 50%;
         transform: translate(-50%, -50%);
         z-index: 2;
     }
     .hero-ds-title {
         font-size: clamp(1.75rem, 5vw, 2.5rem);
-        font-weight: 700;
-        color: #fff !important;
+        font-weight: 700; color: #fff !important;
         margin: 0 0 0.6rem 0;
-        letter-spacing: -0.02em;
-        line-height: 1.15;
+        letter-spacing: -0.02em; line-height: 1.15;
     }
     .hero-ds-sub {
         font-size: clamp(0.85rem, 2.5vw, 1rem);
         color: #8a8a8a !important;
-        font-weight: 400;
-        line-height: 1.6;
-        margin: 0 auto;
-        max-width: 480px;
+        font-weight: 400; line-height: 1.6;
+        margin: 0 auto; max-width: 480px;
     }
 
-    /* ============================================================
-       SUGGESTION CARDS (DeepSeek-style prompts)
-       ============================================================ */
+    /* SUGGESTIONS */
     .suggest-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 0.65rem;
-        margin: 2rem 0 1rem 0;
+        gap: 0.65rem; margin: 2rem 0 1rem 0;
     }
     .suggest-card {
         background: #1f1f1f;
@@ -342,25 +242,15 @@ st.markdown("""
         transition: all 0.15s;
         direction: rtl;
     }
-    .suggest-card:hover {
-        background: #262626;
-        border-color: #3a3a3a;
-    }
     .suggest-title {
-        font-size: 0.88rem;
-        font-weight: 600;
-        color: #ececec !important;
-        margin-bottom: 0.25rem;
+        font-size: 0.88rem; font-weight: 600;
+        color: #ececec !important; margin-bottom: 0.25rem;
     }
     .suggest-desc {
-        font-size: 0.72rem;
-        color: #8a8a8a !important;
-        line-height: 1.4;
+        font-size: 0.72rem; color: #8a8a8a !important; line-height: 1.4;
     }
 
-    /* ============================================================
-       CHAT MESSAGES
-       ============================================================ */
+    /* CHAT */
     .stChatMessage {
         background: transparent !important;
         border: none !important;
@@ -369,16 +259,12 @@ st.markdown("""
         border-bottom: 1px solid #262626 !important;
         border-radius: 0 !important;
     }
-    .stChatMessage:last-of-type {
-        border-bottom: none !important;
-    }
     .stChatMessage p {
         color: #ececec !important;
         font-size: clamp(0.9rem, 2.4vw, 1rem) !important;
         line-height: 1.7 !important;
         margin: 0 !important;
     }
-    /* User message accent */
     .stChatMessage.user {
         background: #1a1a1a !important;
         border-left: 3px solid #e70013 !important;
@@ -392,9 +278,7 @@ st.markdown("""
         padding: 1.1rem 0 !important;
     }
 
-    /* ============================================================
-       BOTTOM INPUT — DeepSeek style (big, centered, prominent)
-       ============================================================ */
+    /* INPUT */
     div[data-testid="stBottom"],
     div[data-testid="stBottom"] > div,
     div[data-testid="stBottomBlockContainer"] {
@@ -403,7 +287,6 @@ st.markdown("""
         box-shadow: none !important;
         padding: 1.5rem 1rem 1.5rem 1rem !important;
     }
-
     div[data-testid="stChatInput"] {
         background: #262626 !important;
         border: 1px solid #3a3a3a !important;
@@ -430,8 +313,7 @@ st.markdown("""
         color: #6a6a6a !important;
     }
     div[data-testid="stChatInput"] button {
-        width: 40px !important;
-        height: 40px !important;
+        width: 40px !important; height: 40px !important;
         min-width: 40px !important;
         border-radius: 50% !important;
         background: #e70013 !important;
@@ -454,9 +336,7 @@ st.markdown("""
         height: 18px !important;
     }
 
-    /* ============================================================
-       SIDEBAR TOGGLE
-       ============================================================ */
+    /* TOGGLE */
     [data-testid="stSidebarCollapsedControl"],
     [data-testid="collapsedControl"] {
         visibility: visible !important;
@@ -478,9 +358,7 @@ st.markdown("""
         height: 20px !important;
     }
 
-    /* ============================================================
-       FOOTER
-       ============================================================ */
+    /* FOOTER */
     .footer-ds {
         text-align: center;
         color: #6a6a6a !important;
@@ -498,9 +376,6 @@ st.markdown("""
         margin: 1rem 0 !important;
     }
 
-    /* ============================================================
-       RESPONSIVE
-       ============================================================ */
     @media (max-width: 640px) {
         .block-container { padding: 0.75rem 0.9rem 6rem 0.9rem !important; }
         .hero-ds { padding: 2rem 0.5rem 1.5rem 0.5rem; }
@@ -516,13 +391,6 @@ st.markdown("""
         section[data-testid="stSidebar"] > div:first-child {
             width: 88vw !important;
         }
-        div[data-testid="stBottom"] > div > div > div {
-            padding: 0 0.5rem !important;
-        }
-    }
-    @media (max-width: 380px) {
-        .hero-ds-title { font-size: 1.4rem; }
-        .hero-ds-logo { width: 52px; height: 52px; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -615,7 +483,7 @@ if "messages" not in st.session_state:
 if "conversation_count" not in st.session_state:
     st.session_state.conversation_count = 0
 if "domain_choice" not in st.session_state:
-    st.session_state.domain_choice = "🔐 الأمن السيبراني والهندسة العكسية"
+    st.session_state.domain_choice = ""
 
 # ============================================================
 # DOMAIN MAP
@@ -633,7 +501,6 @@ BASE_IDENTITY = "You are Houssem AI, created by Houssem Kessentini from Tunisia.
 # SIDEBAR
 # ============================================================
 with st.sidebar:
-    # Brand
     st.markdown("""
         <div class="sidebar-brand">
             <div class="sidebar-logo"></div>
@@ -641,18 +508,22 @@ with st.sidebar:
         </div>
     """, unsafe_allow_html=True)
 
-    # Domain
     st.markdown("### 🎯 المجال")
+
+    # Safe fallback: if old choice doesn't exist, use first option
+    _domain_options = list(DOMAIN_MAP.keys())
+    if st.session_state.domain_choice not in _domain_options:
+        st.session_state.domain_choice = _domain_options[0]
+
     st.session_state.domain_choice = st.selectbox(
         "المجال",
-        list(DOMAIN_MAP.keys()),
-        index=list(DOMAIN_MAP.keys()).index(st.session_state.domain_choice),
+        _domain_options,
+        index=_domain_options.index(st.session_state.domain_choice),
         key="domain_selector",
         label_visibility="collapsed",
     )
     domain = st.session_state.domain_choice
 
-    # Usage
     st.markdown("### 📊 الاستهلاك")
     try:
         usage = rate_usage(client_ip)
@@ -679,7 +550,6 @@ with st.sidebar:
     except Exception:
         pass
 
-    # Stats
     st.markdown("### 📈 الإحصائيات")
     st.markdown(f"""
         <div class="stats-mini">
@@ -694,7 +564,6 @@ with st.sidebar:
         </div>
     """, unsafe_allow_html=True)
 
-    # Actions
     st.markdown("### ⚙️ الإجراءات")
 
     if st.session_state.messages:
@@ -727,7 +596,6 @@ if not st.session_state.messages:
         </div>
     """, unsafe_allow_html=True)
 
-    # Suggestion cards
     st.markdown("""
         <div class="suggest-grid">
             <div class="suggest-card">
@@ -756,9 +624,6 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# ============================================================
-# FOOTER (only when chatting)
-# ============================================================
 if st.session_state.messages:
     st.markdown("""
         <div class="footer-ds">
