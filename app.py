@@ -17,69 +17,101 @@ st.set_page_config(
 )
 
 # ============================================================
-# CSS
+# MOBILE META — critical for Redmi, MIUI, Safari, etc.
+# ============================================================
+st.markdown("""
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#16213e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+""", unsafe_allow_html=True)
+
+# ============================================================
+# CSS — Universal, defensive, cross-browser
 # ============================================================
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
 
-    /* ========== KILL ALL STREAMLIT CHROME ========== */
+    /* ========== RESET EVERYTHING ========== */
+    *, *::before, *::after {
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+    }
+    html, body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #0f0f1e !important;
+        overflow-x: hidden !important;
+        -webkit-text-size-adjust: 100% !important;
+        text-size-adjust: 100% !important;
+        font-family: 'Cairo', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+        color: #fff !important;
+        min-height: 100vh;
+    }
+
+    /* ========== KILL STREAMLIT CHROME (universal) ========== */
+    #MainMenu { display: none !important; visibility: hidden !important; }
+    footer { display: none !important; visibility: hidden !important; }
     header[data-testid="stHeader"] {
         display: none !important;
         height: 0 !important;
         visibility: hidden !important;
+        background: transparent !important;
     }
-    div[data-testid="stToolbar"] { display: none !important; }
-    div[data-testid="stDecoration"] { display: none !important; }
-    #MainMenu { display: none !important; }
-    footer { display: none !important; }
-    .stDeployButton { display: none !important; }
-    div[data-testid="stStatusWidget"] { display: none !important; }
-
-    /* ========== FLOATING SIDEBAR TOGGLE ========== */
-    [data-testid="stSidebarCollapsedControl"],
-    [data-testid="collapsedControl"] {
-        visibility: visible !important;
-        display: block !important;
-        opacity: 1 !important;
-        z-index: 999999 !important;
-        position: fixed !important;
-        top: 12px !important;
-        left: 12px !important;
-        background: linear-gradient(135deg,#e74c3c,#c0392b) !important;
-        border-radius: 10px !important;
-        padding: 8px 10px !important;
-        box-shadow: 0 4px 15px rgba(231,76,60,0.6) !important;
-    }
-    [data-testid="stSidebarCollapsedControl"] svg,
-    [data-testid="collapsedControl"] svg {
-        fill: #fff !important;
-        color: #fff !important;
-        width: 24px !important;
-        height: 24px !important;
+    div[data-testid="stToolbar"],
+    div[data-testid="stDecoration"],
+    div[data-testid="stStatusWidget"],
+    div[data-testid="stDeployButton"],
+    .stDeployButton {
+        display: none !important;
+        visibility: hidden !important;
     }
 
-    /* ========== BASE ========== */
-    html, body {
+    /* ========== KILL EVERY DARK/BLACK BAR AT BOTTOM ========== */
+    div[data-testid="stBottom"],
+    div[data-testid="stBottom"] > div,
+    div[data-testid="stBottom"] > div > div,
+    div[data-testid="stBottomBlockContainer"],
+    div[data-testid="stBottomBlockContainer"] > div,
+    div[data-testid="stChatInputContainer"],
+    section[data-testid="stBottom"] {
+        background: transparent !important;
+        background-color: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    /* ========== APP BACKGROUND (full bleed) ========== */
+    .stApp,
+    .stApp > div,
+    .stApp > div > div,
+    [data-testid="stAppViewContainer"],
+    [data-testid="stAppViewContainer"] > div,
+    section.main,
+    .main,
+    .main > div {
         background: radial-gradient(circle at 20% 20%, #1a1a2e, #16213e, #0f3460) !important;
-        font-family: 'Cairo', sans-serif;
-        overflow-x: hidden !important;
-        -webkit-text-size-adjust: 100%;
-        margin: 0;
-        padding: 0;
-    }
-    .stApp, .stApp > div, section.main, .main, [data-testid="stAppViewContainer"] {
-        background: radial-gradient(circle at 20% 20%, #1a1a2e, #16213e, #0f3460) !important;
+        background-attachment: fixed !important;
     }
 
-    h1,h2,h3,h4,h5,h6,p,span,div,label,small,strong { color:#fff !important; }
-    *, *::before, *::after { box-sizing: border-box; }
-
+    /* ========== BLOCK CONTAINER ========== */
     .block-container,
-    section.main > div {
-        padding: 1rem 0.8rem 4rem 0.8rem !important;
+    .main .block-container,
+    section.main > div.block-container {
+        padding: 1rem 0.9rem 6rem 0.9rem !important;
         max-width: 100% !important;
         width: 100% !important;
+        margin: 0 auto !important;
+    }
+
+    /* ========== COLOR OVERRIDES ========== */
+    h1,h2,h3,h4,h5,h6,p,span,div,label,small,strong,li,a {
+        color: #fff !important;
     }
 
     /* ========== TITLE ========== */
@@ -88,7 +120,7 @@ st.markdown("""
         font-size: clamp(1.4rem, 5vw + 0.5rem, 2.6rem);
         font-weight: 900;
         color: #fff !important;
-        margin: 0 0 0 0;
+        margin: 0;
         text-shadow: 0 0 15px rgba(231,76,60,0.6);
         line-height: 1.15;
         word-break: break-word;
@@ -207,9 +239,9 @@ st.markdown("""
         overflow: hidden;
     }
     .usage-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease; }
-    .usage-fill-green { background: linear-gradient(90deg,#27ae60,#2ecc71); box-shadow: 0 0 8px rgba(46,204,113,0.5); }
-    .usage-fill-yellow { background: linear-gradient(90deg,#f39c12,#f1c40f); box-shadow: 0 0 8px rgba(241,196,15,0.5); }
-    .usage-fill-red { background: linear-gradient(90deg,#c0392b,#e74c3c); box-shadow: 0 0 8px rgba(231,76,60,0.5); }
+    .usage-fill-green { background: linear-gradient(90deg,#27ae60,#2ecc71); }
+    .usage-fill-yellow { background: linear-gradient(90deg,#f39c12,#f1c40f); }
+    .usage-fill-red { background: linear-gradient(90deg,#c0392b,#e74c3c); }
 
     /* ========== STAT CARDS ========== */
     .stat-card {
@@ -242,25 +274,14 @@ st.markdown("""
         font-size: clamp(0.85rem, 1vw + 0.5rem, 1rem) !important;
         line-height: 1.6 !important;
         word-wrap: break-word;
+        overflow-wrap: break-word;
     }
     .stChatMessage.user {
         background: rgba(231,76,60,0.12) !important;
         border: 1px solid rgba(231,76,60,0.35) !important;
     }
 
-    /* ======================================================
-       FIX: CHAT INPUT BOTTOM BAR — this is the black strip!
-       ====================================================== */
-    div[data-testid="stBottom"],
-    div[data-testid="stBottom"] > div,
-    div[data-testid="stBottomBlockContainer"],
-    div[data-testid="stBottom"] > div:first-child {
-        background: transparent !important;
-        border: none !important;
-        box-shadow: none !important;
-        padding: 0 !important;
-    }
-
+    /* ========== CHAT INPUT ========== */
     div[data-testid="stChatInput"] {
         background: #16213e !important;
         border: 2px solid rgba(231,76,60,0.6) !important;
@@ -295,9 +316,42 @@ st.markdown("""
         margin: 0.8rem 0 !important;
     }
 
-    /* ========== RESPONSIVE ========== */
+    /* ========== SIDEBAR TOGGLE — UNIVERSAL ========== */
+    [data-testid="stSidebarCollapsedControl"],
+    [data-testid="collapsedControl"],
+    button[kind="header"],
+    button[kind="headerNoPadding"],
+    button[aria-label*="sidebar"],
+    button[aria-label*="Sidebar"] {
+        visibility: visible !important;
+        display: block !important;
+        opacity: 1 !important;
+        z-index: 9999999 !important;
+        position: fixed !important;
+        top: 10px !important;
+        left: 10px !important;
+        background: linear-gradient(135deg,#e74c3c,#c0392b) !important;
+        border-radius: 10px !important;
+        padding: 8px 10px !important;
+        box-shadow: 0 4px 15px rgba(231,76,60,0.6) !important;
+        border: none !important;
+    }
+    [data-testid="stSidebarCollapsedControl"] svg,
+    [data-testid="collapsedControl"] svg,
+    button[kind="header"] svg {
+        fill: #fff !important;
+        color: #fff !important;
+        width: 24px !important;
+        height: 24px !important;
+    }
+
+    /* ======================================================
+       RESPONSIVE
+       ====================================================== */
     @media (max-width: 768px) {
-        .block-container { padding: 0.6rem 0.6rem 5rem 0.6rem !important; }
+        .block-container {
+            padding: 1rem 0.7rem 6rem 0.7rem !important;
+        }
         div[data-testid="column"] {
             width: 100% !important;
             flex: 1 1 100% !important;
@@ -307,10 +361,24 @@ st.markdown("""
             min-width: 88vw !important;
             max-width: 88vw !important;
         }
+        .stChatMessage { font-size: 0.9rem !important; }
     }
+
+    @media (max-width: 400px) {
+        .block-container { padding: 0.8rem 0.5rem 6rem 0.5rem !important; }
+        .custom-title { font-size: 1.4rem; }
+    }
+
+    /* Desktop */
     @media (min-width: 1025px) {
-        .block-container { max-width: 1000px !important; margin: 0 auto !important; }
+        .block-container {
+            max-width: 1000px !important;
+            margin: 0 auto !important;
+            padding: 2rem 1rem 4rem 1rem !important;
+        }
     }
+
+    /* Reduced motion */
     @media (prefers-reduced-motion: reduce) {
         * { transition: none !important; animation: none !important; }
     }
@@ -439,7 +507,6 @@ with st.sidebar:
     """, unsafe_allow_html=True)
 
     st.markdown("---")
-
     st.markdown("### 🎯 المجال التحليلي")
     st.session_state.domain_choice = st.selectbox(
         "اختر المجال:",
@@ -466,7 +533,6 @@ with st.sidebar:
             icon = icons_map[window]
             label = labels_map[window]
             pct = (count / limit) * 100 if limit else 0
-
             if pct < 50:
                 fill_class = "usage-fill-green"
             elif pct < 85:
@@ -583,7 +649,6 @@ if prompt := st.chat_input("اكتب سؤالك هنا..."):
     with st.chat_message("assistant"):
         try:
             system_instruction = BASE_IDENTITY + DOMAIN_MAP[domain]
-
             history = st.session_state.messages[-20:]
             api_messages = [{"role": "system", "content": system_instruction}]
             api_messages.extend(
