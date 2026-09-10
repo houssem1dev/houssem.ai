@@ -1,3 +1,4 @@
+import os
 import time
 from datetime import datetime
 
@@ -17,7 +18,7 @@ from security import (
 )
 
 # ============================================================
-# PAGE CONFIG (must be first Streamlit call)
+# PAGE CONFIG
 # ============================================================
 st.set_page_config(
     page_title="Houssem AI | أول ذكاء اصطناعي تونسـي",
@@ -27,16 +28,54 @@ st.set_page_config(
 )
 
 # ============================================================
-# THEME CSS (responsive: phone / tablet / desktop)
+# THEME CSS — responsive + sidebar always visible
 # ============================================================
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
 
-    #MainMenu, footer, header, .stDeployButton, .stToolbar,
+    /* ---------- Hide Streamlit chrome, keep sidebar toggle ---------- */
+    #MainMenu, footer, .stDeployButton, .stToolbar,
     div[data-testid="stToolbar"], div[data-testid="stDecoration"],
-    div[data-testid="stStatusWidget"] {visibility: hidden; display: none;}
+    div[data-testid="stStatusWidget"] {
+        visibility: hidden;
+        display: none;
+    }
 
+    /* Keep header transparent (so the > toggle arrow stays visible) */
+    header[data-testid="stHeader"] {
+        background: transparent !important;
+        box-shadow: none !important;
+        height: auto !important;
+    }
+
+    /* Make the sidebar toggle arrow big, red, and obvious */
+    button[kind="header"],
+    button[data-testid="stSidebarCollapsedControl"],
+    button[data-testid="baseButton-header"] {
+        color: #fff !important;
+        background: rgba(231,76,60,0.9) !important;
+        border-radius: 8px !important;
+        visibility: visible !important;
+        display: inline-flex !important;
+        margin: 8px !important;
+        padding: 6px 10px !important;
+        box-shadow: 0 4px 12px rgba(231,76,60,0.5) !important;
+    }
+
+    /* ---------- Force sidebar to stay visible ---------- */
+    section[data-testid="stSidebar"] {
+        display: block !important;
+        visibility: visible !important;
+        background: rgba(22,33,62,0.95) !important;
+        border-right: 1px solid rgba(255,255,255,0.1) !important;
+        min-width: 280px !important;
+    }
+    section[data-testid="stSidebar"] > div {
+        padding-top: 1rem;
+    }
+
+    /* ---------- Base ---------- */
     html, body, .stApp {
         background: radial-gradient(circle at 20% 20%, #1a1a2e, #16213e, #0f3460);
         font-family: 'Cairo', sans-serif;
@@ -52,6 +91,7 @@ st.markdown("""
         margin: 0 auto;
     }
 
+    /* ---------- Header ---------- */
     .custom-title {
         text-align: center;
         font-size: clamp(1.8rem, 6vw, 3rem);
@@ -69,6 +109,7 @@ st.markdown("""
         padding: 0 0.5rem;
     }
 
+    /* ---------- Stat cards ---------- */
     .stat-card {
         background: rgba(255,255,255,0.1);
         backdrop-filter: blur(10px);
@@ -91,6 +132,7 @@ st.markdown("""
         margin-top: 5px;
     }
 
+    /* ---------- Buttons ---------- */
     .stButton > button {
         background: linear-gradient(135deg,#e74c3c 0%,#c0392b 100%);
         color: white !important;
@@ -109,6 +151,7 @@ st.markdown("""
         box-shadow: 0 6px 20px rgba(231,76,60,0.5);
     }
 
+    /* ---------- Chat messages ---------- */
     .stChatMessage {
         background: rgba(255,255,255,0.05);
         border: 1px solid rgba(255,255,255,0.1);
@@ -122,6 +165,7 @@ st.markdown("""
         border: 1px solid rgba(231,76,60,0.3);
     }
 
+    /* ---------- Inputs (16px prevents iOS zoom) ---------- */
     .stTextInput input,
     .stTextArea textarea {
         background: rgba(255,255,255,0.05) !important;
@@ -136,6 +180,7 @@ st.markdown("""
         border: 1px solid #e74c3c !important;
     }
 
+    /* ---------- Chat input ---------- */
     div[data-testid="stChatInput"] {
         background: rgba(22,33,62,0.95) !important;
         border: 1px solid rgba(255,255,255,0.2) !important;
@@ -147,6 +192,7 @@ st.markdown("""
         font-size: 16px !important;
     }
 
+    /* ---------- Tabs (login / signup) ---------- */
     .stTabs [data-baseweb="tab-list"] {
         gap: 0.5rem;
         justify-content: center;
@@ -157,14 +203,12 @@ st.markdown("""
         padding: 0.5rem 1rem;
     }
 
-    section[data-testid="stSidebar"] {
-        background: rgba(22,33,62,0.95) !important;
-        border-right: 1px solid rgba(255,255,255,0.1) !important;
-    }
+    /* Sidebar buttons smaller */
     section[data-testid="stSidebar"] .stButton > button {
         font-size: 0.9rem;
     }
 
+    /* ---------- Footer ---------- */
     .footer-text {
         text-align: center;
         color: #95a5a6 !important;
@@ -175,6 +219,7 @@ st.markdown("""
 
     hr { border-color: rgba(255,255,255,0.1) !important; margin: 1rem 0; }
 
+    /* ---------- Responsive: phones ---------- */
     @media (max-width: 768px) {
         .block-container { padding: 0.8rem 0.6rem 2rem 0.6rem; }
         .custom-title { font-size: clamp(1.6rem, 8vw, 2.2rem); }
@@ -217,7 +262,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ============================================================
-# AUTH GATE — stops app if not logged in
+# AUTH GATE
 # ============================================================
 username = require_auth()
 
@@ -351,6 +396,18 @@ with st.sidebar:
     if st.button("🚪 تسجيل الخروج", use_container_width=True):
         logout()
 
+    # ---------- Admin Panel ----------
+    ADMIN_USERS = ["houssem", "zaineb"]   # <-- add admin usernames here
+    if username in ADMIN_USERS:
+        with st.expander("🛠️ Admin Panel"):
+            try:
+                from users_db import list_users, count_users
+                st.markdown(f"**Total users:** {count_users()}")
+                for u in list_users():
+                    st.markdown(f"- `{u['username']}` — {str(u['created_at'])[:10]}")
+            except Exception as e:
+                st.caption(f"Admin data unavailable: {e}")
+
     st.markdown(
         f'<div style="text-align:center;font-size:0.7rem;color:#7f8c8d;">'
         f'Session: <code>{st.session_state.session_id}</code></div>',
@@ -387,7 +444,7 @@ if prompt := st.chat_input("اكتب سؤالك هنا..."):
 
     sid = st.session_state.session_id
 
-    # ---- 1. RATE LIMIT ----
+    # --- 1. Rate limit ---
     allowed, reason = limiter.check(sid)
     if not allowed:
         audit("rate_limit_hit", reason, session=sid, user=username,
@@ -395,7 +452,7 @@ if prompt := st.chat_input("اكتب سؤالك هنا..."):
         st.warning(reason)
         st.stop()
 
-    # ---- 2. VALIDATE ----
+    # --- 2. Validate ---
     ok, err = validate_input(prompt)
     if not ok:
         event = "harmful_blocked" if "غير مسموح" in err else "injection_blocked"
@@ -404,10 +461,10 @@ if prompt := st.chat_input("اكتب سؤالك هنا..."):
         st.error(err)
         st.stop()
 
-    # ---- 3. SANITIZE ----
+    # --- 3. Sanitize ---
     safe_prompt = sanitize_input(prompt)
 
-    # ---- 4. STORE & RENDER ----
+    # --- 4. Store ---
     st.session_state.messages.append({"role": "user", "content": safe_prompt})
     st.session_state.conversation_count += 1
 
@@ -418,7 +475,7 @@ if prompt := st.chat_input("اكتب سؤالك هنا..."):
     with st.chat_message("user"):
         st.markdown(safe_prompt)
 
-    # ---- 5. CALL LLM ----
+    # --- 5. LLM call (streaming) ---
     with st.chat_message("assistant"):
         try:
             system_instruction = build_system_prompt(BASE_IDENTITY, DOMAIN_MAP[domain])
