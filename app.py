@@ -61,7 +61,7 @@ st.markdown("""
         font-family: 'Cairo', sans-serif !important;
     }
 
-    /* Hide the native Streamlit sidebar toggle */
+    /* Hide native sidebar toggle */
     [data-testid="stSidebarCollapsedControl"],
     [data-testid="collapsedControl"],
     [data-testid="stSidebarCollapseButton"],
@@ -69,14 +69,6 @@ st.markdown("""
     button[aria-label*="Sidebar"] {
         display: none !important;
         visibility: hidden !important;
-    }
-
-    /* Our custom sidebar toggle — floating button top-left */
-    .custom-sidebar-toggle {
-        position: fixed;
-        top: 16px;
-        left: 16px;
-        z-index: 2147483647;
     }
 
     /* SIDEBAR */
@@ -143,7 +135,6 @@ st.markdown("""
         border-color: #3a3a3a !important;
     }
 
-    /* Dropdown — dark */
     section[data-testid="stSidebar"] div[data-baseweb="select"],
     section[data-testid="stSidebar"] div[data-baseweb="select"] > div,
     section[data-testid="stSidebar"] div[data-baseweb="select"] > div > div,
@@ -190,7 +181,6 @@ st.markdown("""
         background: #2a2a2a !important;
     }
 
-    /* USAGE */
     .usage-mini { display: flex; flex-direction: column; gap: 0.5rem; }
     .usage-item-mini {
         background: #1a1a1a;
@@ -212,7 +202,6 @@ st.markdown("""
         border-radius: 2px;
     }
 
-    /* STATS */
     .stats-mini { display: flex; gap: 0.4rem; flex-wrap: wrap; }
     .stat-mini {
         flex: 1; min-width: 70px;
@@ -232,7 +221,6 @@ st.markdown("""
         letter-spacing: 0.05em;
     }
 
-    /* HERO */
     .hero-ds { text-align: center; padding: 3rem 1rem 2rem 1rem; }
     .hero-ds-logo {
         display: inline-block;
@@ -259,7 +247,6 @@ st.markdown("""
         margin: 0 auto; max-width: 480px;
     }
 
-    /* SUGGESTIONS */
     .suggest-grid {
         display: grid !important;
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
@@ -288,7 +275,6 @@ st.markdown("""
         line-height: 1.4 !important;
     }
 
-    /* CHAT */
     .stChatMessage {
         background: transparent !important;
         border: none !important;
@@ -330,7 +316,6 @@ st.markdown("""
         padding: 1.1rem 0 !important;
     }
 
-    /* INPUT */
     div[data-testid="stBottom"],
     div[data-testid="stBottom"] > div,
     div[data-testid="stBottomBlockContainer"] {
@@ -383,7 +368,6 @@ st.markdown("""
         height: 18px !important;
     }
 
-    /* FOOTER */
     .footer-ds {
         text-align: center;
         color: #6a6a6a !important;
@@ -426,15 +410,10 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ============================================================
-# CUSTOM SIDEBAR TOGGLE — a real button that opens the sidebar
+# SIDEBAR TOGGLE BUTTON
 # ============================================================
 if "sidebar_open" not in st.session_state:
     st.session_state.sidebar_open = True
-
-# The toggle button, floating top-left
-st.markdown("""
-    <div class="custom-sidebar-toggle"></div>
-""", unsafe_allow_html=True)
 
 toggle_col1, toggle_col2, toggle_col3 = st.columns([0.12, 0.76, 0.12])
 with toggle_col1:
@@ -545,11 +524,32 @@ DOMAIN_MAP = {
     "📰 التحليل الاستراتيجي": "You are a Tech Intelligence Analyst.",
 }
 
+# ============================================================
+# 🎯 AI IDENTITY — Always introduce حسام القسنطيني on greetings
+# ============================================================
 BASE_IDENTITY = (
-    f"You are Houssem AI (حسام الذكاء الاصطناعي), "
+    "You are Houssem AI (حسام الذكاء الاصطناعي), "
     f"created by {MY_NAME_EN} ({MY_NAME_AR}) from Sfax, Tunisia. "
-    "When asked who you are or who made you, always say: "
-    f"'أنا Houssem AI، أول ذكاء اصطناعي تونسي، طورني {MY_NAME_AR} من صفاقس، تونس.' "
+    "CRITICAL RULES — Follow at all times:\n"
+    "1. If the user greets you in ANY language (hi, hello, hey, bonjour, "
+    "salut, مرحبا, أهلا, أهلاً, السلام عليكم, صباح الخير, or any greeting), "
+    f"your response MUST begin by introducing your creator '{MY_NAME_AR}' "
+    f"(also known as {MY_NAME_EN}) and mention that you are "
+    "'Houssem AI, the first Tunisian AI' (أول ذكاء اصطناعي تونسي).\n"
+    "2. If the user asks who you are, who created you, who made you, who developed you, "
+    "or any question like 'من أنت', 'من صنعك', 'من طورك', 'من صممك', 'who made you', "
+    f"'who created you', always answer: 'أنا Houssem AI، أول ذكاء اصطناعي تونسي، "
+    f"طورني {MY_NAME_AR} من صفاقس، تونس.'\n"
+    "3. Always respond in the SAME language the user writes in "
+    "(Arabic → Arabic, English → English, French → French).\n"
+    "4. If greeting in English: 'Hello! I'm Houssem AI, the first Tunisian AI, "
+    f"created by {MY_NAME_AR}. How can I help you?'\n"
+    "5. If greeting in Arabic: 'مرحباً! أنا Houssem AI، أول ذكاء اصطناعي تونسي، "
+    f"طوّرني {MY_NAME_AR} من صفاقس. كيف يمكنني مساعدتك؟'\n"
+    "6. If greeting in French: 'Bonjour ! Je suis Houssem AI, la première IA tunisienne, "
+    f"créée par {MY_NAME_AR}. Comment puis-je vous aider ?'\n"
+    "7. After introducing your creator, ONLY THEN proceed to help the user with "
+    "their question in the selected domain.\n"
 )
 
 # ============================================================
