@@ -16,9 +16,6 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# ============================================================
-# META
-# ============================================================
 st.markdown(
     '<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">'
     '<meta name="theme-color" content="#1a1a1a">',
@@ -384,31 +381,24 @@ hr {
     margin: 1rem 0 !important;
 }
 
-div[data-testid="stVerticalBlock"] > div:has(button[key="sidebar_toggle_btn"]) {
-    position: fixed !important;
-    top: 16px !important;
-    left: 16px !important;
-    z-index: 2147483647 !important;
-    width: 56px !important;
-    height: 56px !important;
-}
-button[key="sidebar_toggle_btn"] {
+/* Top bar layout */
+.topbar-left .stButton > button {
     background: linear-gradient(135deg, #e70013, #b30010) !important;
     color: #fff !important;
     border: 2px solid rgba(255,255,255,0.25) !important;
-    border-radius: 14px !important;
+    border-radius: 12px !important;
     width: 48px !important;
     height: 48px !important;
     min-width: 48px !important;
     min-height: 48px !important;
-    font-size: 24px !important;
+    font-size: 22px !important;
     font-weight: 700 !important;
-    box-shadow: 0 6px 20px rgba(231,0,19,0.6) !important;
     padding: 0 !important;
+    box-shadow: 0 6px 20px rgba(231,0,19,0.5) !important;
     line-height: 1 !important;
 }
-button[key="sidebar_toggle_btn"]:hover {
-    transform: scale(1.08);
+.topbar-left .stButton > button:hover {
+    transform: scale(1.06);
     box-shadow: 0 8px 24px rgba(231,0,19,0.8) !important;
 }
 
@@ -545,9 +535,6 @@ DOMAIN_MAP = {
     "📰 التحليل الاستراتيجي": "You are a Tech Intelligence Analyst.",
 }
 
-# ============================================================
-# AI IDENTITY
-# ============================================================
 BASE_IDENTITY = (
     "You are Houssem AI (حسام الذكاء الاصطناعي), "
     "created by " + MY_NAME_EN + " (" + MY_NAME_AR + ") from Sfax, Tunisia. "
@@ -562,29 +549,31 @@ BASE_IDENTITY = (
 )
 
 # ============================================================
-# SIDEBAR TOGGLE BUTTON
+# TOP BAR — Inline toggle button + your name (works on ALL phones)
 # ============================================================
-if st.button("☰", key="sidebar_toggle_btn", help="فتح / إغلاق القائمة"):
-    st.session_state.sidebar_open = not st.session_state.sidebar_open
-    st.rerun()
+st.markdown('<div class="topbar-left">', unsafe_allow_html=True)
+nav_left, nav_right = st.columns([1, 5])
 
-# ============================================================
-# TOP BAR — your name in the top-right
-# ============================================================
-top_bar_html = (
-    '<div style="display:flex;align-items:center;justify-content:flex-end;'
-    'padding:4px 12px 12px 12px;margin-bottom:8px;min-height:40px;">'
-    '<div style="display:flex;align-items:center;gap:8px;'
-    'background:rgba(231,0,19,0.12);border:1px solid rgba(231,0,19,0.35);'
-    'border-radius:20px;padding:5px 14px;">'
-    '<img src="https://upload.wikimedia.org/wikipedia/commons/c/ce/Flag_of_Tunisia.svg" '
-    'style="width:18px;height:18px;border-radius:50%;" />'
-    '<span style="font-size:0.85rem;font-weight:700;color:#ececec;">'
-    + MY_NAME_AR +
-    '</span>'
-    '</div></div>'
-)
-st.markdown(top_bar_html, unsafe_allow_html=True)
+with nav_left:
+    if st.button("☰", key="sidebar_toggle_btn"):
+        st.session_state.sidebar_open = not st.session_state.sidebar_open
+        st.rerun()
+
+with nav_right:
+    pill_html = (
+        '<div style="display:flex;justify-content:flex-end;align-items:center;'
+        'height:48px;padding-top:4px;">'
+        '<div style="display:inline-flex;align-items:center;gap:8px;'
+        'background:rgba(231,0,19,0.12);border:1px solid rgba(231,0,19,0.35);'
+        'border-radius:20px;padding:6px 14px;">'
+        '<img src="https://upload.wikimedia.org/wikipedia/commons/c/ce/Flag_of_Tunisia.svg" '
+        'style="width:18px;height:18px;border-radius:50%;" />'
+        '<span style="font-size:0.85rem;font-weight:700;color:#ececec;">'
+        + MY_NAME_AR +
+        '</span></div></div>'
+    )
+    st.markdown(pill_html, unsafe_allow_html=True)
+st.markdown('</div>', unsafe_allow_html=True)
 
 # ============================================================
 # SIDEBAR
