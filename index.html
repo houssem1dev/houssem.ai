@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 html, body { height: 100%; background: #1a1a1a; color: #ececec; font-family: 'Cairo', sans-serif; overflow: hidden; }
@@ -62,11 +63,71 @@ button, input, textarea { font-family: inherit; }
 .suggest-title { font-size: 0.9rem; font-weight: 600; color: #ececec; margin-bottom: 4px; }
 .suggest-desc { font-size: 0.75rem; color: #8a8a8a; }
 
-.message { padding: 14px 0; border-bottom: 1px solid #262626; font-size: clamp(0.9rem, 2.4vw, 1rem); line-height: 1.7; color: #ececec; white-space: pre-wrap; word-wrap: break-word; }
-.message.user { background: #1a1a1a; border-right: 3px solid #e70013; border-bottom: 1px solid #262626; padding: 14px 16px 14px 14px; border-radius: 12px 0 0 12px; margin: 8px 0; }
+.message { padding: 14px 0; border-bottom: 1px solid #262626; font-size: clamp(0.9rem, 2.4vw, 1rem); line-height: 1.7; color: #ececec; word-wrap: break-word; }
+.message.user { background: #1a1a1a; border-right: 3px solid #e70013; border-bottom: 1px solid #262626; padding: 14px 16px 14px 14px; border-radius: 12px 0 0 12px; margin: 8px 0; white-space: pre-wrap; }
 .message.assistant { background: transparent; }
 .message.typing::after { content: '▌'; animation: blink 0.9s infinite; color: #e70013; }
 @keyframes blink { 50% { opacity: 0; } }
+
+/* ============================================================
+   MARKDOWN FORMATTING
+   ============================================================ */
+.message h1, .message h2, .message h3, .message h4 {
+    color: #fff;
+    margin: 16px 0 8px 0;
+    font-weight: 700;
+    line-height: 1.3;
+}
+.message h1 { font-size: 1.4rem; }
+.message h2 { font-size: 1.2rem; }
+.message h3 { font-size: 1.05rem; }
+.message h4 { font-size: 1rem; }
+.message p { margin: 8px 0; }
+.message ul, .message ol { margin: 8px 0; padding-right: 22px; padding-left: 0; }
+.message li { margin: 5px 0; line-height: 1.7; }
+.message strong { color: #fff; font-weight: 700; }
+.message em { font-style: italic; }
+.message code {
+    background: #262626;
+    color: #ff6b6b;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.88em;
+    direction: ltr;
+    display: inline-block;
+}
+.message pre {
+    background: #0f0f0f;
+    border: 1px solid #2a2a2a;
+    border-radius: 10px;
+    padding: 14px;
+    margin: 12px 0;
+    overflow-x: auto;
+    direction: ltr;
+    text-align: left;
+}
+.message pre code {
+    background: transparent;
+    color: #e0e0e0;
+    padding: 0;
+    font-size: 0.85em;
+    display: block;
+    line-height: 1.6;
+    white-space: pre;
+}
+.message a { color: #ff6b6b; text-decoration: underline; }
+.message blockquote {
+    border-right: 3px solid #e70013;
+    padding-right: 12px;
+    margin: 10px 0;
+    color: #b8b8b8;
+    font-style: italic;
+}
+.message table { border-collapse: collapse; margin: 10px 0; width: 100%; font-size: 0.9em; }
+.message th, .message td { border: 1px solid #2a2a2a; padding: 8px 10px; text-align: right; }
+.message th { background: #1f1f1f; font-weight: 700; color: #fff; }
+.message hr { border: none; border-top: 1px solid #2a2a2a; margin: 14px 0; }
 
 .input-area { padding: 14px 16px 20px; background: linear-gradient(180deg, rgba(26,26,26,0) 0%, #1a1a1a 40%); flex-shrink: 0; }
 .input-wrap { display: flex; align-items: center; gap: 8px; max-width: 780px; margin: 0 auto; background: #262626; border: 1px solid #3a3a3a; border-radius: 24px; padding: 6px; }
@@ -212,8 +273,16 @@ const BASE_IDENTITY =
     "3. Respond in the SAME language the user writes in.";
 
 const state = { messages: [], domain: "cyber", count: 0 };
-const $ = (id) => document.getElementById(id);
 
+// Markdown configuration
+marked.setOptions({ breaks: true, gfm: true, headerIds: false, mangle: false });
+
+function renderMarkdown(text) {
+    try { return marked.parse(text); }
+    catch (e) { return text.replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+}
+
+const $ = (id) => document.getElementById(id);
 const sidebar = $("sidebar"), overlay = $("overlay"), menuBtn = $("menuBtn");
 const userInput = $("userInput"), sendBtn = $("sendBtn");
 const chatArea = $("chatArea"), chatInner = $("chatInner"), hero = $("hero");
@@ -297,7 +366,11 @@ function addMessage(role, content) {
     hero.style.display = "none";
     const div = document.createElement("div");
     div.className = "message " + role;
-    div.textContent = content;
+    if (role === "assistant") {
+        div.innerHTML = renderMarkdown(content);
+    } else {
+        div.textContent = content;
+    }
     chatInner.appendChild(div);
     chatArea.scrollTop = chatArea.scrollHeight;
     return div;
@@ -362,7 +435,7 @@ async function sendMessage() {
                     const delta = json.choices?.[0]?.delta?.content;
                     if (delta) {
                         fullText += delta;
-                        assistantDiv.textContent = fullText;
+                        assistantDiv.innerHTML = renderMarkdown(fullText);
                         chatArea.scrollTop = chatArea.scrollHeight;
                     }
                 } catch (e) {}
@@ -370,7 +443,7 @@ async function sendMessage() {
         }
 
         assistantDiv.classList.remove("typing");
-        assistantDiv.textContent = fullText;
+        assistantDiv.innerHTML = renderMarkdown(fullText);
         state.messages.push({ role: "assistant", content: fullText });
 
     } catch (err) {
