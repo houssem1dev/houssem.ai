@@ -1,12 +1,6 @@
-// Vercel Serverless Function — /api/chat
-// This runs on Vercel's servers. The Groq key stays here, hidden from users.
-
-export const config = {
-    runtime: 'edge',
-};
+export const config = { runtime: 'edge' };
 
 export default async function handler(req) {
-    // Only allow POST
     if (req.method !== 'POST') {
         return new Response(JSON.stringify({ error: 'Method not allowed' }), {
             status: 405,
@@ -14,7 +8,6 @@ export default async function handler(req) {
         });
     }
 
-    // Get API key from environment variable
     const apiKey = process.env.GROQ_API_KEY;
     if (!apiKey) {
         return new Response(
@@ -23,7 +16,6 @@ export default async function handler(req) {
         );
     }
 
-    // Parse body
     let body;
     try {
         body = await req.json();
@@ -34,7 +26,6 @@ export default async function handler(req) {
         );
     }
 
-    // Basic validation
     const { messages, temperature = 0.4, max_tokens = 2048 } = body;
     if (!Array.isArray(messages) || messages.length === 0) {
         return new Response(
@@ -43,7 +34,6 @@ export default async function handler(req) {
         );
     }
 
-    // Call Groq
     try {
         const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
             method: 'POST',
@@ -52,7 +42,7 @@ export default async function handler(req) {
                 'Authorization': `Bearer ${apiKey}`,
             },
             body: JSON.stringify({
-                model: 'openai/gpt-oss-20b',
+                model: 'openai/gpt-oss-120b',
                 messages,
                 temperature,
                 max_tokens,
@@ -68,7 +58,6 @@ export default async function handler(req) {
             });
         }
 
-        // Stream the response back to the browser
         return new Response(groqResponse.body, {
             status: 200,
             headers: {
