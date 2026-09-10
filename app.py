@@ -19,34 +19,60 @@ st.set_page_config(
     page_title="Houssem AI | أول ذكاء اصطناعي تونسـي",
     page_icon="🇹🇳",
     layout="wide",
-    initial_sidebar_state="collapsed",
+    initial_sidebar_state="expanded",
 )
 
 # ============================================================
-# CSS — responsive, hides sidebar completely
+# CSS — responsive, sidebar toggle always visible
 # ============================================================
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
 
-    /* Hide Streamlit chrome AND the entire sidebar + its toggle */
     #MainMenu, footer, .stDeployButton,
     div[data-testid="stToolbar"], div[data-testid="stDecoration"],
-    div[data-testid="stStatusWidget"],
-    section[data-testid="stSidebar"],
+    div[data-testid="stStatusWidget"] {
+        display: none !important;
+    }
+
+    header[data-testid="stHeader"] {
+        background: transparent !important;
+        box-shadow: none !important;
+        height: auto !important;
+        min-height: 40px !important;
+    }
+
+    /* Sidebar toggle — big red, always visible */
     [data-testid="stSidebarCollapsedControl"],
     [data-testid="collapsedControl"],
     button[kind="header"],
     button[kind="headerNoPadding"] {
-        display: none !important;
-        visibility: hidden !important;
+        visibility: visible !important;
+        display: inline-flex !important;
+        opacity: 1 !important;
+        color: #fff !important;
+        background: rgba(231,76,60,0.95) !important;
+        border-radius: 8px !important;
+        margin: 6px !important;
+        padding: 6px !important;
+        z-index: 9999999 !important;
+        box-shadow: 0 4px 12px rgba(231,76,60,0.6) !important;
+    }
+    [data-testid="stSidebarCollapsedControl"] svg,
+    [data-testid="collapsedControl"] svg,
+    button[kind="header"] svg,
+    button[kind="headerNoPadding"] svg {
+        fill: #fff !important;
+        color: #fff !important;
+        width: 22px !important;
+        height: 22px !important;
     }
 
-    header[data-testid="stHeader"] {
-        display: none !important;
+    section[data-testid="stSidebar"] {
+        background: rgba(22,33,62,0.98) !important;
+        border-right: 2px solid rgba(231,76,60,0.4) !important;
     }
 
-    /* Base */
     html, body, .stApp {
         background: radial-gradient(circle at 20% 20%, #1a1a2e, #16213e, #0f3460);
         font-family: 'Cairo', sans-serif;
@@ -153,13 +179,6 @@ st.markdown("""
         font-size: 16px !important;
     }
 
-    /* Selectbox styling */
-    div[data-baseweb="select"] > div {
-        background: rgba(255,255,255,0.05) !important;
-        border: 1px solid rgba(255,255,255,0.2) !important;
-        color: #fff !important;
-    }
-
     .footer-text {
         text-align: center;
         color: #95a5a6 !important;
@@ -229,6 +248,8 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 if "conversation_count" not in st.session_state:
     st.session_state.conversation_count = 0
+if "domain_choice" not in st.session_state:
+    st.session_state.domain_choice = "🔐 الأمن السيبراني والهندسة العكسية"
 
 # ============================================================
 # DOMAIN MAP
@@ -252,24 +273,14 @@ DOMAIN_MAP = {
 BASE_IDENTITY = "You are Houssem AI, created by Houssem Kessentini. "
 
 # ============================================================
-# HEADER
+# SIDEBAR — all controls here
 # ============================================================
-st.markdown('<h1 class="custom-title">⚡ Houssem AI</h1>', unsafe_allow_html=True)
-st.markdown(
-    '<p class="custom-subtitle">🇹🇳 أول ذكاء اصطناعي تونسي متقدم — مطور بواسطة حسام القسنطيني</p>',
-    unsafe_allow_html=True,
-)
+with st.sidebar:
+    st.markdown("## ⚡ Houssem AI")
+    st.caption("🛡️ بدون تسجيل — استخدام مباشر")
+    st.markdown("---")
 
-# ============================================================
-# CONTROL PANEL (inline, above the chat)
-# ============================================================
-st.markdown("### ⚙️ لوحة التحكم")
-
-ctrl_col1, ctrl_col2 = st.columns([3, 2])
-
-with ctrl_col1:
-    if "domain_choice" not in st.session_state:
-        st.session_state.domain_choice = list(DOMAIN_MAP.keys())[0]
+    st.markdown("### ⚙️ لوحة التحكم")
 
     st.session_state.domain_choice = st.selectbox(
         "🎯 المجال التحليلي:",
@@ -279,8 +290,9 @@ with ctrl_col1:
     )
     domain = st.session_state.domain_choice
 
-with ctrl_col2:
-    st.markdown("**📊 استهلاكك**")
+    st.markdown("---")
+    st.markdown("### 📊 استهلاكك (IP)")
+
     try:
         usage = limiter.get_usage(f"ip:{client_ip}")
         limits_map = {"minute": 15, "hour": 200, "day": 1500}
@@ -293,38 +305,26 @@ with ctrl_col2:
     except Exception:
         st.caption("معلومات الاستهلاك غير متاحة.")
 
-st.markdown("---")
+    st.markdown("---")
 
-# Stats row
-stat_col1, stat_col2, stat_col3 = st.columns(3)
-with stat_col1:
-    st.markdown(f"""
-        <div class="stat-card">
-            <div class="stat-number">{st.session_state.conversation_count}</div>
-            <div class="stat-label">الرسائل المرسلة</div>
-        </div>
-    """, unsafe_allow_html=True)
-with stat_col2:
-    st.markdown(f"""
-        <div class="stat-card">
-            <div class="stat-number">{len(st.session_state.messages)}</div>
-            <div class="stat-label">في المحادثة</div>
-        </div>
-    """, unsafe_allow_html=True)
-with stat_col3:
-    st.markdown(f"""
-        <div class="stat-card">
-            <div class="stat-number" style="font-size:clamp(0.9rem,2.5vw,1.2rem);">{client_ip}</div>
-            <div class="stat-label">عنوان IP</div>
-        </div>
-    """, unsafe_allow_html=True)
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown(f"""
+            <div class="stat-card">
+                <div class="stat-number">{st.session_state.conversation_count}</div>
+                <div class="stat-label">الرسائل المرسلة</div>
+            </div>
+        """, unsafe_allow_html=True)
+    with col2:
+        st.markdown(f"""
+            <div class="stat-card">
+                <div class="stat-number">{len(st.session_state.messages)}</div>
+                <div class="stat-label">في المحادثة</div>
+            </div>
+        """, unsafe_allow_html=True)
 
-st.markdown("---")
+    st.markdown("---")
 
-# Action buttons
-btn_col1, btn_col2, btn_col3 = st.columns(3)
-
-with btn_col1:
     if st.session_state.messages:
         chat_text = "\n".join(
             f"{'👤' if m['role'] == 'user' else '🤖'}: {m['content']}"
@@ -337,32 +337,38 @@ with btn_col1:
             mime="text/plain",
             use_container_width=True,
         )
-    else:
-        st.button("📥 تصدير المحادثة", disabled=True, use_container_width=True)
 
-with btn_col2:
     if st.button("🗑️ مسح المحادثة", use_container_width=True):
         st.session_state.messages = []
         st.session_state.conversation_count = 0
         st.rerun()
 
-with btn_col3:
-    if st.button("🔄 تحديث", use_container_width=True):
-        st.rerun()
+    st.markdown("---")
+    st.caption(f"🌍 IP: `{client_ip}`")
 
-st.markdown("---")
+# ============================================================
+# HEADER
+# ============================================================
+st.markdown('<h1 class="custom-title">⚡ Houssem AI</h1>', unsafe_allow_html=True)
+st.markdown(
+    '<p class="custom-subtitle">🇹🇳 أول ذكاء اصطناعي تونسي متقدم — مطور بواسطة حسام القسنطيني</p>',
+    unsafe_allow_html=True,
+)
 
 # ============================================================
 # WELCOME
 # ============================================================
 if not st.session_state.messages:
     st.markdown("""
-        <div style="text-align:center;padding:30px;color:#95a5a6;">
+        <div style="text-align:center;padding:40px;color:#95a5a6;">
             <div style="font-size:50px;">🇹🇳</div>
-            <div style="font-size:1.3rem;font-weight:700;margin:10px 0;color:#fff;">
+            <div style="font-size:1.5rem;font-weight:700;margin:10px 0;color:#fff;">
                 مرحباً بك في Houssem AI
             </div>
             <div>اختر المجال ثم اكتب سؤالك في الأسفل</div>
+            <div style="margin-top:12px;font-size:0.8rem;color:#7f8c8d;">
+                💡 اضغط على زر <b>»</b> في الأعلى لفتح القائمة الجانبية
+            </div>
         </div>
     """, unsafe_allow_html=True)
 
@@ -373,17 +379,21 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
+st.markdown('<hr>', unsafe_allow_html=True)
+
 # ============================================================
 # INPUT
 # ============================================================
 if prompt := st.chat_input("اكتب سؤالك هنا..."):
 
+    # Rate limit by IP
     rate_key = f"ip:{client_ip}"
     allowed, reason = limiter.check(rate_key)
     if not allowed:
         st.warning(reason)
         st.stop()
 
+    # Validation
     ok, err = validate_input(prompt)
     if not ok:
         st.error(err)
@@ -397,6 +407,7 @@ if prompt := st.chat_input("اكتب سؤالك هنا..."):
     with st.chat_message("user"):
         st.markdown(safe_prompt)
 
+    # LLM call
     with st.chat_message("assistant"):
         try:
             system_instruction = build_system_prompt(BASE_IDENTITY, DOMAIN_MAP[domain])
