@@ -1,9 +1,6 @@
 """
 Houssem AI - Authentication module.
-- bcrypt password hashing
-- Session tokens with expiry
-- Login attempt throttling
-- Users stored in secrets.toml (upgrade to DB for scale)
+bcrypt password hashing + login attempt throttling.
 """
 
 import bcrypt
@@ -16,20 +13,12 @@ import streamlit as st
 
 from audit import audit
 
-SESSION_TTL_MINUTES = 60 * 8       # 8 hours
+SESSION_TTL_MINUTES = 60 * 8
 MAX_LOGIN_ATTEMPTS = 5
 LOCKOUT_MINUTES = 15
 
 
-# ============================================================
-# USER LOADING
-# ============================================================
 def load_users() -> dict:
-    """Load users from st.secrets['users']. Format:
-        [[users]]
-        username = "houssem"
-        password_hash = "$2b$12$..."
-    """
     try:
         users = st.secrets.get("users", [])
         return {u["username"]: u["password_hash"] for u in users}
@@ -37,11 +26,7 @@ def load_users() -> dict:
         return {}
 
 
-# ============================================================
-# PASSWORD UTILITIES
-# ============================================================
 def hash_password(plain: str) -> str:
-    """Generate a bcrypt hash. Run once offline to fill secrets.toml."""
     return bcrypt.hashpw(plain.encode(), bcrypt.gensalt(rounds=12)).decode()
 
 
@@ -52,21 +37,16 @@ def verify_password(plain: str, hashed: str) -> bool:
         return False
 
 
-# ============================================================
-# LOGIN ATTEMPT THROTTLE (per-username, in-memory)
-# ============================================================
 _attempts: dict = {}
 
 
 def _check_lockout(username: str) -> Tuple[bool, int]:
-    """Return (is_locked, seconds_remaining)."""
     record = _attempts.get(username)
     if not record:
         return False, 0
     count, first_ts, locked_until = record
     if locked_until and time.time() < locked_until:
         return True, int(locked_until - time.time())
-    # Reset if lockout expired
     if locked_until and time.time() >= locked_until:
         _attempts.pop(username, None)
     return False, 0
@@ -86,9 +66,6 @@ def _reset_attempts(username: str):
     _attempts.pop(username, None)
 
 
-# ============================================================
-# SESSION MANAGEMENT
-# ============================================================
 def create_session(username: str) -> dict:
     return {
         "user": username,
@@ -104,13 +81,7 @@ def is_session_valid(session: Optional[dict]) -> bool:
     return datetime.utcnow() < session["expires_at"]
 
 
-# ============================================================
-# STREAMLIT INTEGRATION
-# ============================================================
 def login_form() -> bool:
-    """Render login UI. Returns True if authenticated."""
-
-    # Already logged in?
     session = st.session_state.get("auth")
     if is_session_valid(session):
         return True
@@ -121,14 +92,13 @@ def login_form() -> bool:
                     border:1px solid rgba(255,255,255,0.15);border-radius:20px;
                     box-shadow:0 8px 40px rgba(0,0,0,0.4);">
             <div style="text-align:center;font-size:2.4rem;">🇹🇳</div>
-            <h2 style="text-align:center;margin:8px 0 4px;">Houssem AI</h2>
+            <h2 style="text-align:center;margin:8px 0 4px;color:#fff;">Houssem AI</h2>
             <p style="text-align:center;color:#bdc3c7;font-size:0.9rem;margin-top:0;">
                 سجّل الدخول للمتابعة
             </p>
         </div>
     """, unsafe_allow_html=True)
 
-    # Center the form
     c1, c2, c3 = st.columns([1, 1.2, 1])
     with c2:
         username = st.text_input("👤 اسم المستخدم", key="login_user")
@@ -158,7 +128,6 @@ def login_form() -> bool:
             st.error(f"❌ بيانات خاطئة. محاولات متبقية: {max(remaining, 0)}")
             return False
 
-        # Success
         _reset_attempts(username)
         st.session_state["auth"] = create_session(username)
         audit("login_success", "User logged in", user=username)
@@ -183,7 +152,6 @@ def current_user() -> Optional[str]:
 
 
 def require_auth() -> str:
-    """Hard gate. Stops the app if not authenticated."""
     if not login_form():
         st.stop()
     return current_user()
