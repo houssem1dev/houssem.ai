@@ -10,7 +10,7 @@ st.set_page_config(
     page_title="Houssem AI",
     page_icon="⚡",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 
 st.markdown(
@@ -32,15 +32,26 @@ html, body {
     -webkit-text-size-adjust: 100%;
     overflow-x: hidden;
 }
+
+/* Hide ALL Streamlit chrome + sidebar completely */
 #MainMenu, footer { visibility: hidden; }
 header[data-testid="stHeader"] { display: none !important; }
 div[data-testid="stToolbar"] { display: none !important; }
 div[data-testid="stDecoration"] { display: none !important; }
+[data-testid="stSidebarCollapsedControl"],
+[data-testid="collapsedControl"],
+[data-testid="stSidebarCollapseButton"],
+section[data-testid="stSidebar"] {
+    display: none !important;
+    visibility: hidden !important;
+    width: 0 !important;
+    min-width: 0 !important;
+}
 
 .stApp, [data-testid="stAppViewContainer"] { background: #1a1a1a !important; }
 section.main { background: #1a1a1a !important; }
 .block-container {
-    padding: 0.5rem 1rem 5rem 1rem !important;
+    padding: 0.5rem 1rem 6rem 1rem !important;
     max-width: 820px !important;
     margin: 0 auto !important;
 }
@@ -49,152 +60,129 @@ h1,h2,h3,h4,h5,h6,p,span,div,label,li,a {
     font-family: 'Cairo', sans-serif !important;
 }
 
-/* Hide native toggle buttons */
-[data-testid="stSidebarCollapsedControl"],
-[data-testid="collapsedControl"],
-[data-testid="stSidebarCollapseButton"] {
-    display: none !important;
+/* ============================================================
+   TOP CONTROL PANEL — full width card with everything
+   ============================================================ */
+.top-controls {
+    background: #141414;
+    border: 1px solid #2a2a2a;
+    border-radius: 16px;
+    padding: 14px 16px;
+    margin-bottom: 14px;
 }
-
-/* Big menu button */
-button[key="menu_bar_btn"] {
-    background: linear-gradient(90deg, #e70013 0%, #b30010 100%) !important;
-    color: #fff !important;
-    border: none !important;
-    border-radius: 14px !important;
-    width: 100% !important;
-    min-height: 56px !important;
-    font-size: 1.1rem !important;
-    font-weight: 700 !important;
-    padding: 12px 16px !important;
-    box-shadow: 0 4px 20px rgba(231,0,19,0.5) !important;
-    text-align: center !important;
-    line-height: 1.4 !important;
-    margin-bottom: 12px !important;
-}
-button[key="menu_bar_btn"]:hover,
-button[key="menu_bar_btn"]:active {
-    background: linear-gradient(90deg, #ff1a2e 0%, #c00010 100%) !important;
-}
-
-section[data-testid="stSidebar"] {
-    background: #141414 !important;
-    border-right: 1px solid #2a2a2a !important;
-    min-width: 280px !important;
-}
-section[data-testid="stSidebar"] > div:first-child {
-    padding: 1.25rem 1rem 2rem 1rem !important;
-}
-section[data-testid="stSidebar"] * {
-    color: #ececec !important;
-}
-.sidebar-brand {
-    display: flex; align-items: center; gap: 0.7rem;
-    padding: 0.4rem 0.4rem 1.2rem 0.4rem;
+.top-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 12px;
     border-bottom: 1px solid #2a2a2a;
-    margin-bottom: 1.1rem;
+    margin-bottom: 12px;
 }
-.sidebar-logo {
-    width: 34px; height: 34px; border-radius: 8px;
+.top-brand-logo {
+    width: 36px; height: 36px; border-radius: 8px;
     background-image: url("https://upload.wikimedia.org/wikipedia/commons/c/ce/Flag_of_Tunisia.svg");
     background-size: cover;
     background-position: center;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
-.sidebar-name {
-    font-size: 1rem; font-weight: 700;
+.top-brand-name {
+    font-size: 1.05rem; font-weight: 700;
     color: #fff !important;
+    line-height: 1.2;
 }
-section[data-testid="stSidebar"] h3 {
-    font-size: 0.7rem !important;
+.top-brand-sub {
+    font-size: 0.7rem;
     color: #8a8a8a !important;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    font-weight: 600;
-    margin: 1.2rem 0 0.6rem 0 !important;
-}
-section[data-testid="stSidebar"] .stButton > button {
-    background: #1f1f1f !important;
-    color: #ececec !important;
-    border: 1px solid #2f2f2f !important;
-    border-radius: 10px !important;
-    min-height: 44px !important;
-    width: 100% !important;
-}
-section[data-testid="stSidebar"] div[data-baseweb="select"],
-section[data-testid="stSidebar"] div[data-baseweb="select"] * {
-    background: #1f1f1f !important;
-    background-color: #1f1f1f !important;
-    color: #ececec !important;
-    border-color: #2f2f2f !important;
-}
-section[data-testid="stSidebar"] div[data-baseweb="select"] > div {
-    border-radius: 10px !important;
-    min-height: 42px !important;
-    direction: rtl !important;
-}
-div[data-baseweb="popover"] *,
-ul[role="listbox"],
-li[role="option"] {
-    background: #1f1f1f !important;
-    color: #ececec !important;
-}
-li[role="option"] {
-    direction: rtl !important;
-    text-align: right !important;
-    padding: 12px 14px !important;
+    margin-top: 2px;
 }
 
-.usage-mini { display: flex; flex-direction: column; gap: 0.5rem; }
+/* Usage bars */
+.usage-mini { display: flex; flex-direction: column; gap: 6px; }
 .usage-item-mini {
-    background: #1a1a1a; border: 1px solid #262626;
-    border-radius: 10px; padding: 0.6rem 0.75rem;
+    background: #1a1a1a;
+    border: 1px solid #262626;
+    border-radius: 10px;
+    padding: 8px 12px;
 }
 .usage-head-mini {
-    display: flex; justify-content: space-between;
-    font-size: 0.72rem; color: #b8b8b8 !important;
-    font-weight: 500; margin-bottom: 0.35rem;
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: #b8b8b8 !important;
+    font-weight: 500;
+    margin-bottom: 5px;
 }
-.usage-bar-mini { height: 4px; background: #262626; border-radius: 2px; overflow: hidden; }
-.usage-bar-mini-fill { height: 100%; background: #e70013; border-radius: 2px; }
+.usage-bar-mini {
+    height: 5px;
+    background: #262626;
+    border-radius: 3px;
+    overflow: hidden;
+}
+.usage-bar-mini-fill {
+    height: 100%;
+    background: #e70013;
+    border-radius: 3px;
+}
 
-.stats-mini { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.stats-mini { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
 .stat-mini {
-    flex: 1; min-width: 70px;
-    background: #1a1a1a; border: 1px solid #262626;
-    border-radius: 10px; padding: 0.6rem 0.4rem; text-align: center;
+    flex: 1;
+    min-width: 70px;
+    background: #1a1a1a;
+    border: 1px solid #262626;
+    border-radius: 10px;
+    padding: 8px 6px;
+    text-align: center;
 }
-.stat-mini-num { font-size: 1.05rem; font-weight: 700; color: #fff !important; line-height: 1; }
+.stat-mini-num {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff !important;
+    line-height: 1;
+}
 .stat-mini-label {
-    font-size: 0.62rem; color: #8a8a8a !important;
-    margin-top: 0.2rem; text-transform: uppercase;
+    font-size: 0.65rem;
+    color: #8a8a8a !important;
+    margin-top: 3px;
+    text-transform: uppercase;
     letter-spacing: 0.05em;
 }
 
-.hero-ds { text-align: center; padding: 2rem 1rem 1.5rem 1rem; }
+/* Hero */
+.hero-ds { text-align: center; padding: 1.5rem 1rem 1.5rem 1rem; }
 .hero-ds-logo {
-    display: inline-block; width: 88px; height: 88px;
+    display: inline-block;
+    width: 88px; height: 88px;
     border-radius: 22px;
     background-image: url("https://upload.wikimedia.org/wikipedia/commons/c/ce/Flag_of_Tunisia.svg");
-    background-size: cover; background-position: center;
+    background-size: cover;
+    background-position: center;
     margin-bottom: 1.5rem;
     box-shadow: 0 12px 40px rgba(231,0,19,0.35);
     border: 2px solid rgba(255,255,255,0.08);
 }
 .hero-ds-title {
-    font-size: clamp(1.75rem, 5vw, 2.5rem);
-    font-weight: 700; color: #fff !important;
-    margin: 0 0 0.6rem 0; line-height: 1.15;
+    font-size: clamp(1.6rem, 5vw, 2.4rem);
+    font-weight: 700;
+    color: #fff !important;
+    margin: 0 0 0.6rem 0;
+    line-height: 1.15;
 }
 .hero-ds-sub {
     font-size: clamp(0.85rem, 2.5vw, 1rem);
     color: #8a8a8a !important;
-    line-height: 1.6; margin: 0 auto; max-width: 480px;
+    line-height: 1.6;
+    margin: 0 auto;
+    max-width: 480px;
 }
 
+/* Suggestion cards */
 .suggest-grid {
     display: grid !important;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
-    gap: 0.65rem !important; margin: 1.5rem 0 1rem 0 !important;
+    gap: 0.65rem !important;
+    margin: 1.5rem 0 1rem 0 !important;
     direction: rtl !important;
 }
 .suggest-card {
@@ -202,34 +190,39 @@ li[role="option"] {
     border: 1px solid #2a2a2a !important;
     border-radius: 14px !important;
     padding: 0.9rem 1rem !important;
-    direction: rtl !important; text-align: right !important;
+    direction: rtl !important;
+    text-align: right !important;
 }
 .suggest-title {
-    font-size: 0.88rem !important; font-weight: 600 !important;
-    color: #ececec !important; margin-bottom: 0.25rem !important;
+    font-size: 0.9rem !important;
+    font-weight: 600 !important;
+    color: #ececec !important;
+    margin-bottom: 0.25rem !important;
 }
 .suggest-desc {
-    font-size: 0.72rem !important; color: #8a8a8a !important;
+    font-size: 0.75rem !important;
+    color: #8a8a8a !important;
 }
 
+/* Chat messages */
 .stChatMessage {
     background: transparent !important;
     border: none !important;
     padding: 1rem 0 !important;
     border-bottom: 1px solid #262626 !important;
 }
-.stChatMessage > div:first-child {
-    display: none !important;
-}
+.stChatMessage > div:first-child { display: none !important; }
 .stChatMessage > div:nth-child(2) {
     display: block !important;
-    padding-left: 0 !important; margin-left: 0 !important;
+    padding-left: 0 !important;
+    margin-left: 0 !important;
     width: 100% !important;
 }
 .stChatMessage p {
     color: #ececec !important;
     font-size: clamp(0.9rem, 2.4vw, 1rem) !important;
-    line-height: 1.7 !important; margin: 0 !important;
+    line-height: 1.7 !important;
+    margin: 0 !important;
 }
 .stChatMessage.user {
     background: #1a1a1a !important;
@@ -239,11 +232,13 @@ li[role="option"] {
     margin-bottom: 0.4rem !important;
 }
 
+/* Input */
 div[data-testid="stBottom"],
 div[data-testid="stBottom"] > div,
 div[data-testid="stBottomBlockContainer"] {
     background: linear-gradient(180deg, rgba(26,26,26,0) 0%, #1a1a1a 40%) !important;
-    border: none !important; padding: 1rem !important;
+    border: none !important;
+    padding: 1rem !important;
 }
 div[data-testid="stChatInput"] {
     background: #262626 !important;
@@ -255,9 +250,7 @@ div[data-testid="stChatInput"] {
     align-items: center !important;
     padding: 6px !important;
 }
-div[data-testid="stChatInput"]:focus-within {
-    border-color: #e70013 !important;
-}
+div[data-testid="stChatInput"]:focus-within { border-color: #e70013 !important; }
 div[data-testid="stChatInput"] textarea {
     color: #ececec !important;
     background: transparent !important;
@@ -275,28 +268,73 @@ div[data-testid="stChatInput"] button {
     padding: 0 !important;
 }
 div[data-testid="stChatInput"] button svg {
-    fill: #fff !important; width: 18px !important; height: 18px !important;
+    fill: #fff !important;
+    width: 18px !important;
+    height: 18px !important;
 }
 
+/* Footer */
 .footer-ds {
-    text-align: center; color: #6a6a6a !important;
-    padding: 2rem 1rem; font-size: 0.72rem;
-    line-height: 1.7; border-top: 1px solid #262626;
+    text-align: center;
+    color: #6a6a6a !important;
+    padding: 2rem 1rem;
+    font-size: 0.72rem;
+    line-height: 1.7;
+    border-top: 1px solid #262626;
     margin-top: 2rem;
 }
 .footer-ds strong { color: #8a8a8a !important; }
 
+/* Style the domain selector (on main page) */
+div[data-baseweb="select"] > div {
+    background: #1f1f1f !important;
+    border: 1px solid #2f2f2f !important;
+    color: #ececec !important;
+    border-radius: 10px !important;
+    min-height: 46px !important;
+    font-size: 0.9rem !important;
+    direction: rtl !important;
+}
+div[data-baseweb="select"] * {
+    color: #ececec !important;
+}
+div[data-baseweb="select"] svg {
+    fill: #8a8a8a !important;
+}
+div[data-baseweb="popover"] *,
+ul[role="listbox"],
+li[role="option"] {
+    background: #1f1f1f !important;
+    color: #ececec !important;
+}
+li[role="option"] {
+    direction: rtl !important;
+    text-align: right !important;
+    padding: 12px 14px !important;
+}
+
+/* Style main page buttons */
+.stButton > button {
+    background: #1f1f1f !important;
+    color: #ececec !important;
+    border: 1px solid #2f2f2f !important;
+    border-radius: 10px !important;
+    min-height: 46px !important;
+    font-size: 0.9rem !important;
+    font-weight: 500 !important;
+    width: 100% !important;
+}
+.stButton > button:hover {
+    background: #262626 !important;
+    border-color: #3a3a3a !important;
+}
+
 @media (max-width: 768px) {
-    section[data-testid="stSidebar"] {
-        min-width: 88vw !important;
-        max-width: 88vw !important;
-        width: 88vw !important;
-        z-index: 2147483646 !important;
-    }
     .suggest-grid { grid-template-columns: 1fr !important; }
-    .hero-ds { padding: 1.5rem 0.5rem 1rem 0.5rem; }
+    .hero-ds { padding: 1rem 0.5rem 1rem 0.5rem; }
     .hero-ds-logo { width: 72px; height: 72px; }
     .hero-ds-title { font-size: 1.5rem; }
+    .block-container { padding: 0.5rem 0.75rem 6rem 0.75rem !important; }
 }
 </style>
 """
@@ -405,132 +443,116 @@ BASE_IDENTITY = (
 )
 
 # ============================================================
-# 🔥 SIDEBAR — ALWAYS rendered, but we control visibility with CSS
+# TOP CONTROL PANEL — brand + usage + stats + domain + actions
 # ============================================================
-if "sidebar_visible" not in st.session_state:
-    st.session_state.sidebar_visible = True
+brand_html = (
+    '<div class="top-controls">'
+    '<div class="top-brand">'
+    '<div class="top-brand-logo"></div>'
+    '<div>'
+    '<div class="top-brand-name">' + MY_NAME_AR + '</div>'
+    '<div class="top-brand-sub">أول ذكاء اصطناعي تونسي متقدم 🇹🇳</div>'
+    '</div>'
+    '</div>'
+    '</div>'
+)
+st.markdown(brand_html, unsafe_allow_html=True)
 
-with st.sidebar:
-    brand_html = (
-        '<div class="sidebar-brand">'
-        '<div class="sidebar-logo"></div>'
-        '<div class="sidebar-name">' + MY_NAME_AR + '</div>'
-        '</div>'
-    )
-    st.markdown(brand_html, unsafe_allow_html=True)
+# Domain selector
+st.markdown(
+    '<div style="font-size:0.7rem;color:#8a8a8a;text-transform:uppercase;'
+    'letter-spacing:0.1em;font-weight:600;margin:8px 0 6px 0;">🎯 المجال</div>',
+    unsafe_allow_html=True
+)
+_domain_options = list(DOMAIN_MAP.keys())
+if st.session_state.domain_choice not in _domain_options:
+    st.session_state.domain_choice = _domain_options[0]
+st.session_state.domain_choice = st.selectbox(
+    "المجال",
+    _domain_options,
+    index=_domain_options.index(st.session_state.domain_choice),
+    key="domain_selector",
+    label_visibility="collapsed",
+)
+domain = st.session_state.domain_choice
 
-    st.markdown("### 🎯 المجال")
-    _domain_options = list(DOMAIN_MAP.keys())
-    if st.session_state.domain_choice not in _domain_options:
-        st.session_state.domain_choice = _domain_options[0]
-    st.session_state.domain_choice = st.selectbox(
-        "المجال", _domain_options,
-        index=_domain_options.index(st.session_state.domain_choice),
-        key="domain_selector", label_visibility="collapsed",
-    )
-    domain = st.session_state.domain_choice
+# Usage bars
+st.markdown(
+    '<div style="font-size:0.7rem;color:#8a8a8a;text-transform:uppercase;'
+    'letter-spacing:0.1em;font-weight:600;margin:12px 0 6px 0;">📊 الاستهلاك</div>',
+    unsafe_allow_html=True
+)
+try:
+    usage = rate_usage(client_ip)
+    limits_map = {"minute": 15, "hour": 200, "day": 1500}
+    labels_map = {"minute": "دقيقة", "hour": "ساعة", "day": "يوم"}
+    st.markdown('<div class="usage-mini">', unsafe_allow_html=True)
+    for window in ["minute", "hour", "day"]:
+        c = usage.get(window, 0)
+        lim = limits_map[window]
+        lbl = labels_map[window]
+        pct = (c / lim) * 100 if lim else 0
+        st.markdown(
+            '<div class="usage-item-mini">'
+            '<div class="usage-head-mini">'
+            '<span>' + lbl + '</span>'
+            '<span>' + str(c) + ' / ' + str(lim) + '</span>'
+            '</div>'
+            '<div class="usage-bar-mini">'
+            '<div class="usage-bar-mini-fill" style="width:' + str(max(pct, 1)) + '%;"></div>'
+            '</div></div>',
+            unsafe_allow_html=True
+        )
+    st.markdown('</div>', unsafe_allow_html=True)
+except Exception:
+    pass
 
-    st.markdown("### 📊 الاستهلاك")
-    try:
-        usage = rate_usage(client_ip)
-        limits_map = {"minute": 15, "hour": 200, "day": 1500}
-        labels_map = {"minute": "دقيقة", "hour": "ساعة", "day": "يوم"}
-        st.markdown('<div class="usage-mini">', unsafe_allow_html=True)
-        for window in ["minute", "hour", "day"]:
-            c = usage.get(window, 0)
-            lim = limits_map[window]
-            lbl = labels_map[window]
-            pct = (c / lim) * 100 if lim else 0
-            st.markdown(
-                '<div class="usage-item-mini">'
-                '<div class="usage-head-mini">'
-                '<span>' + lbl + '</span>'
-                '<span>' + str(c) + ' / ' + str(lim) + '</span>'
-                '</div>'
-                '<div class="usage-bar-mini">'
-                '<div class="usage-bar-mini-fill" style="width:' + str(max(pct, 1)) + '%;"></div>'
-                '</div></div>',
-                unsafe_allow_html=True
-            )
-        st.markdown('</div>', unsafe_allow_html=True)
-    except Exception:
-        pass
+# Stats
+st.markdown(
+    '<div class="stats-mini">'
+    '<div class="stat-mini">'
+    '<div class="stat-mini-num">' + str(st.session_state.conversation_count) + '</div>'
+    '<div class="stat-mini-label">رسائل</div>'
+    '</div>'
+    '<div class="stat-mini">'
+    '<div class="stat-mini-num">' + str(total_visits) + '</div>'
+    '<div class="stat-mini-label">زوار</div>'
+    '</div>'
+    '</div>',
+    unsafe_allow_html=True
+)
 
-    st.markdown("### 📈 الإحصائيات")
-    st.markdown(
-        '<div class="stats-mini">'
-        '<div class="stat-mini">'
-        '<div class="stat-mini-num">' + str(st.session_state.conversation_count) + '</div>'
-        '<div class="stat-mini-label">رسائل</div>'
-        '</div>'
-        '<div class="stat-mini">'
-        '<div class="stat-mini-num">' + str(total_visits) + '</div>'
-        '<div class="stat-mini-label">زوار</div>'
-        '</div></div>',
-        unsafe_allow_html=True
-    )
+# Actions
+st.markdown('<div style="height:12px;"></div>', unsafe_allow_html=True)
+act_col1, act_col2 = st.columns(2)
 
-    st.markdown("### ⚙️ الإجراءات")
+with act_col1:
     if st.session_state.messages:
         chat_text = "\n".join(
             ("👤: " if m["role"] == "user" else "🤖: ") + m["content"]
             for m in st.session_state.messages
         )
         st.download_button(
-            "📥 تصدير المحادثة",
+            "📥 تصدير",
             data=chat_text,
             file_name="houssem_ai_chat_" + datetime.now().strftime("%Y%m%d_%H%M") + ".txt",
-            mime="text/plain", use_container_width=True,
+            mime="text/plain",
+            use_container_width=True,
         )
+    else:
+        st.button("📥 تصدير", disabled=True, use_container_width=True)
+
+with act_col2:
     if st.button("🗑 محادثة جديدة", use_container_width=True):
         st.session_state.messages = []
         st.session_state.conversation_count = 0
         st.rerun()
 
-# ============================================================
-# HIDE/SHOW SIDEBAR VIA CSS BASED ON STATE
-# ============================================================
-if not st.session_state.sidebar_visible:
-    hide_css = """
-    <style>
-    section[data-testid="stSidebar"] {
-        display: none !important;
-        visibility: hidden !important;
-        width: 0 !important;
-        min-width: 0 !important;
-    }
-    section.main { margin-left: 0 !important; }
-    </style>
-    """
-    st.markdown(hide_css, unsafe_allow_html=True)
-
-# ============================================================
-# 🔥 BIG MENU BUTTON — always visible at top
-# ============================================================
-if st.session_state.sidebar_visible:
-    menu_label = "✕  إغلاق القائمة"
-else:
-    menu_label = "☰  فتح القائمة"
-
-if st.button(menu_label, key="menu_bar_btn", use_container_width=True):
-    st.session_state.sidebar_visible = not st.session_state.sidebar_visible
-    st.rerun()
-
-# ============================================================
-# TOP BAR — name pill
-# ============================================================
-top_bar_html = (
-    '<div style="display:flex;justify-content:flex-end;margin-bottom:12px;">'
-    '<div style="display:inline-flex;align-items:center;gap:8px;'
-    'background:rgba(231,0,19,0.12);border:1px solid rgba(231,0,19,0.35);'
-    'border-radius:20px;padding:6px 14px;">'
-    '<img src="https://upload.wikimedia.org/wikipedia/commons/c/ce/Flag_of_Tunisia.svg" '
-    'style="width:18px;height:18px;border-radius:50%;" />'
-    '<span style="font-size:0.85rem;font-weight:700;color:#ececec;">'
-    + MY_NAME_AR +
-    '</span></div></div>'
+# Divider
+st.markdown(
+    '<div style="border-top:1px solid #262626;margin:16px 0;"></div>',
+    unsafe_allow_html=True
 )
-st.markdown(top_bar_html, unsafe_allow_html=True)
 
 # ============================================================
 # HERO
@@ -559,13 +581,16 @@ if not st.session_state.messages:
     )
 
 # ============================================================
-# CHAT
+# CHAT HISTORY
 # ============================================================
 for message in st.session_state.messages:
     avatar = "⚡" if message["role"] == "assistant" else "👤"
     with st.chat_message(message["role"], avatar=avatar):
         st.markdown(message["content"])
 
+# ============================================================
+# FOOTER
+# ============================================================
 if st.session_state.messages:
     st.markdown(
         '<div class="footer-ds">'
@@ -576,9 +601,10 @@ if st.session_state.messages:
     )
 
 # ============================================================
-# INPUT
+# CHAT INPUT
 # ============================================================
 if prompt := st.chat_input("اكتب رسالتك هنا..."):
+
     allowed, reason = rate_check(client_ip)
     if not allowed:
         st.warning(reason)
@@ -600,7 +626,9 @@ if prompt := st.chat_input("اكتب رسالتك هنا..."):
             stream = client.chat.completions.create(
                 model="openai/gpt-oss-20b",
                 messages=api_messages,
-                temperature=0.4, max_tokens=2048, stream=True,
+                temperature=0.4,
+                max_tokens=2048,
+                stream=True,
             )
 
             full_response = ""
