@@ -4,7 +4,6 @@ from datetime import datetime
 import streamlit as st
 from groq import Groq
 
-# Local modules
 from auth import require_auth, logout
 from audit import audit
 from rate_limit import RedisRateLimiter
@@ -18,7 +17,7 @@ from security import (
 )
 
 # ============================================================
-# PAGE CONFIG (must be first Streamlit call)
+# PAGE CONFIG
 # ============================================================
 st.set_page_config(
     page_title="Houssem AI | أول ذكاء اصطناعي تونسـي",
@@ -73,7 +72,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ============================================================
-# AUTH GATE — stops app if not logged in
+# AUTH GATE
 # ============================================================
 username = require_auth()
 
@@ -243,7 +242,6 @@ if prompt := st.chat_input("اكتب سؤالك هنا..."):
 
     sid = st.session_state.session_id
 
-    # ---- 1. RATE LIMIT ----
     allowed, reason = limiter.check(sid)
     if not allowed:
         audit("rate_limit_hit", reason, session=sid, user=username,
@@ -251,7 +249,6 @@ if prompt := st.chat_input("اكتب سؤالك هنا..."):
         st.warning(reason)
         st.stop()
 
-    # ---- 2. VALIDATE ----
     ok, err = validate_input(prompt)
     if not ok:
         event = "harmful_blocked" if "غير مسموح" in err else "injection_blocked"
@@ -260,10 +257,8 @@ if prompt := st.chat_input("اكتب سؤالك هنا..."):
         st.error(err)
         st.stop()
 
-    # ---- 3. SANITIZE ----
     safe_prompt = sanitize_input(prompt)
 
-    # ---- 4. STORE & RENDER ----
     st.session_state.messages.append({"role": "user", "content": safe_prompt})
     st.session_state.conversation_count += 1
 
@@ -274,7 +269,6 @@ if prompt := st.chat_input("اكتب سؤالك هنا..."):
     with st.chat_message("user"):
         st.markdown(safe_prompt)
 
-    # ---- 5. CALL LLM ----
     with st.chat_message("assistant"):
         try:
             system_instruction = build_system_prompt(BASE_IDENTITY, DOMAIN_MAP[domain])
