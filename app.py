@@ -28,65 +28,24 @@ st.set_page_config(
 )
 
 # ============================================================
-# THEME CSS — responsive + working sidebar toggle
+# THEME CSS
 # ============================================================
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
 
-    /* Hide ONLY extra chrome — DO NOT hide the header */
     #MainMenu, footer, .stDeployButton,
     div[data-testid="stToolbar"], div[data-testid="stDecoration"],
     div[data-testid="stStatusWidget"] {
         display: none !important;
     }
 
-    /* Keep header in layout so the sidebar toggle exists */
     header[data-testid="stHeader"] {
         background: transparent !important;
         box-shadow: none !important;
-        height: 3rem !important;
-        opacity: 1 !important;
-        visibility: visible !important;
+        height: 0 !important;
     }
 
-    /* Force the sidebar toggle to be visible everywhere */
-    [data-testid="stSidebarCollapsedControl"],
-    [data-testid="collapsedControl"],
-    button[kind="headerNoPadding"],
-    button[kind="header"] {
-        visibility: visible !important;
-        display: flex !important;
-        opacity: 1 !important;
-        color: #fff !important;
-        background: rgba(231,76,60,0.95) !important;
-        border-radius: 8px !important;
-        margin: 6px !important;
-        padding: 6px !important;
-        z-index: 999999 !important;
-        box-shadow: 0 4px 12px rgba(231,76,60,0.6) !important;
-    }
-    [data-testid="stSidebarCollapsedControl"] svg,
-    [data-testid="collapsedControl"] svg,
-    button[kind="header"] svg,
-    button[kind="headerNoPadding"] svg {
-        fill: #fff !important;
-        color: #fff !important;
-        width: 22px !important;
-        height: 22px !important;
-    }
-
-    /* Keep sidebar visible */
-    section[data-testid="stSidebar"] {
-        background: rgba(22,33,62,0.95) !important;
-        border-right: 1px solid rgba(255,255,255,0.1) !important;
-        min-width: 280px !important;
-    }
-    section[data-testid="stSidebar"] > div {
-        padding-top: 1rem;
-    }
-
-    /* Base */
     html, body, .stApp {
         background: radial-gradient(circle at 20% 20%, #1a1a2e, #16213e, #0f3460);
         font-family: 'Cairo', sans-serif;
@@ -207,8 +166,9 @@ st.markdown("""
         padding: 0.5rem 1rem;
     }
 
-    section[data-testid="stSidebar"] .stButton > button {
-        font-size: 0.9rem;
+    section[data-testid="stSidebar"] {
+        background: rgba(22,33,62,0.98) !important;
+        border-right: 2px solid rgba(231,76,60,0.4) !important;
     }
 
     .footer-text {
@@ -237,23 +197,6 @@ st.markdown("""
         .custom-title { font-size: 1.6rem; }
         .stat-number { font-size: 1.4rem; }
         .stButton > button { font-size: 0.85rem; padding: 0.55rem 0.9rem; }
-    }
-
-    @media (max-height: 500px) and (orientation: landscape) {
-        .custom-title { font-size: 1.5rem; }
-        .custom-subtitle { display: none; }
-    }
-
-    @media (min-width: 769px) and (max-width: 1024px) {
-        .block-container { max-width: 900px; }
-    }
-
-    @media (min-width: 1600px) {
-        .block-container { max-width: 1400px; }
-    }
-
-    @media (hover: none) {
-        .stButton > button:hover { transform: none; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -293,15 +236,8 @@ if "conversation_count" not in st.session_state:
     st.session_state.conversation_count = 0
 if "session_id" not in st.session_state:
     st.session_state.session_id = hash_session_id(f"{username}:{time.time()}")
-
-# ============================================================
-# HEADER
-# ============================================================
-st.markdown('<h1 class="custom-title">⚡ Houssem AI</h1>', unsafe_allow_html=True)
-st.markdown(
-    '<p class="custom-subtitle">🇹🇳 أول ذكاء اصطناعي تونسي متقدم — مطور بواسطة حسام القسنطيني</p>',
-    unsafe_allow_html=True,
-)
+if "domain_choice" not in st.session_state:
+    st.session_state.domain_choice = "🔐 الأمن السيبراني والهندسة العكسية"
 
 # ============================================================
 # DOMAIN MAP
@@ -325,19 +261,21 @@ DOMAIN_MAP = {
 BASE_IDENTITY = "You are Houssem AI, created by Houssem Kessentini. "
 
 # ============================================================
-# SIDEBAR
+# SIDEBAR (always visible — controlled by real Streamlit)
 # ============================================================
 with st.sidebar:
-    st.markdown(f"### 👤 {username}")
+    st.markdown(f"## 👤 {username}")
     st.caption("🛡️ جلسة موثقة")
     st.markdown("---")
 
     st.markdown("### ⚙️ لوحة التحكم")
-    domain = st.selectbox(
+    st.session_state.domain_choice = st.selectbox(
         "🎯 المجال التحليلي:",
         list(DOMAIN_MAP.keys()),
+        index=list(DOMAIN_MAP.keys()).index(st.session_state.domain_choice),
         key="domain_selector",
     )
+    domain = st.session_state.domain_choice
 
     st.markdown("---")
     st.markdown("### 📊 الاستهلاك")
@@ -397,7 +335,6 @@ with st.sidebar:
     if st.button("🚪 تسجيل الخروج", use_container_width=True):
         logout()
 
-    # ---------- Admin Panel ----------
     ADMIN_USERS = ["houssem", "zaineb"]
     if username in ADMIN_USERS:
         with st.expander("🛠️ Admin Panel"):
@@ -409,11 +346,39 @@ with st.sidebar:
             except Exception as e:
                 st.caption(f"Admin data unavailable: {e}")
 
-    st.markdown(
-        f'<div style="text-align:center;font-size:0.7rem;color:#7f8c8d;">'
-        f'Session: <code>{st.session_state.session_id}</code></div>',
-        unsafe_allow_html=True,
-    )
+    st.markdown("---")
+    st.markdown("### 📚 المساعدة")
+    st.caption("اختر مجالاً من الأعلى ثم اكتب سؤالك.")
+
+# ============================================================
+# TOP BAR — Custom Menu button (works on cloud too)
+# ============================================================
+top_left, top_center, top_right = st.columns([2, 6, 2])
+with top_left:
+    st.markdown(f"""
+        <div style="
+            background: rgba(231,76,60,0.15);
+            border: 1px solid rgba(231,76,60,0.4);
+            border-radius: 12px;
+            padding: 8px 14px;
+            font-size: 0.85rem;
+            color: #fff !important;
+        ">
+            👤 <b>{username}</b><br>
+            <span style="font-size:0.7rem;opacity:0.8;">
+                {domain.split()[0]} {domain.split()[1] if len(domain.split())>1 else ''}
+            </span>
+        </div>
+    """, unsafe_allow_html=True)
+
+# ============================================================
+# HEADER
+# ============================================================
+st.markdown('<h1 class="custom-title">⚡ Houssem AI</h1>', unsafe_allow_html=True)
+st.markdown(
+    '<p class="custom-subtitle">🇹🇳 أول ذكاء اصطناعي تونسي متقدم — مطور بواسطة حسام القسنطيني</p>',
+    unsafe_allow_html=True,
+)
 
 # ============================================================
 # WELCOME
@@ -426,6 +391,9 @@ if not st.session_state.messages:
                 مرحباً {username}
             </div>
             <div>اكتب سؤالك في الأسفل وابدأ التحليل الذكي</div>
+            <div style="margin-top:12px;font-size:0.85rem;color:#7f8c8d;">
+                استخدم زر <b>☰</b> في الأعلى لفتح القائمة الجانبية
+            </div>
         </div>
     """, unsafe_allow_html=True)
 
@@ -445,7 +413,6 @@ if prompt := st.chat_input("اكتب سؤالك هنا..."):
 
     sid = st.session_state.session_id
 
-    # --- 1. Rate limit ---
     allowed, reason = limiter.check(sid)
     if not allowed:
         audit("rate_limit_hit", reason, session=sid, user=username,
@@ -453,7 +420,6 @@ if prompt := st.chat_input("اكتب سؤالك هنا..."):
         st.warning(reason)
         st.stop()
 
-    # --- 2. Validate ---
     ok, err = validate_input(prompt)
     if not ok:
         event = "harmful_blocked" if "غير مسموح" in err else "injection_blocked"
@@ -462,10 +428,8 @@ if prompt := st.chat_input("اكتب سؤالك هنا..."):
         st.error(err)
         st.stop()
 
-    # --- 3. Sanitize ---
     safe_prompt = sanitize_input(prompt)
 
-    # --- 4. Store ---
     st.session_state.messages.append({"role": "user", "content": safe_prompt})
     st.session_state.conversation_count += 1
 
@@ -476,7 +440,6 @@ if prompt := st.chat_input("اكتب سؤالك هنا..."):
     with st.chat_message("user"):
         st.markdown(safe_prompt)
 
-    # --- 5. LLM call (streaming) ---
     with st.chat_message("assistant"):
         try:
             system_instruction = build_system_prompt(BASE_IDENTITY, DOMAIN_MAP[domain])
