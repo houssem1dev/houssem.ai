@@ -12,46 +12,48 @@ from groq import Groq
 st.set_page_config(
     page_title="Houssem AI",
     page_icon="⚡",
-    layout="centered",
-    initial_sidebar_state="collapsed",
+    layout="wide",
+    initial_sidebar_state="auto",
 )
 
 # ============================================================
-# CSS — Phone-first
+# ADAPTIVE CSS
 # ============================================================
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
 
-    /* Hide Streamlit chrome */
+    /* -------- Hide Streamlit chrome -------- */
     #MainMenu, footer, .stDeployButton,
     div[data-testid="stToolbar"], div[data-testid="stDecoration"] {
         display: none !important;
     }
 
-    /* ==== BASE ==== */
+    /* -------- Base -------- */
     html, body, .stApp {
         background: radial-gradient(circle at 20% 20%, #1a1a2e, #16213e, #0f3460);
         font-family: 'Cairo', sans-serif;
         color: #fff !important;
         overflow-x: hidden !important;
+        -webkit-text-size-adjust: 100%;
     }
     h1,h2,h3,h4,h5,h6,p,span,div,label,small,strong { color:#fff !important; }
+    *, *::before, *::after { box-sizing: border-box; }
 
-    /* ==== CONTAINER — tight padding, full width ==== */
+    /* -------- Adaptive container -------- */
     .block-container,
     section.main > div {
-        padding: 0.5rem 0.6rem 6rem 0.6rem !important;
+        padding: 0.5rem 0.6rem 4rem 0.6rem !important;
         max-width: 100% !important;
-        margin: 0 !important;
+        width: 100% !important;
     }
 
-    /* ==== TITLE — smaller on phone, no clipping ==== */
+    /* -------- Adaptive title -------- */
     .custom-title {
         text-align: center;
-        font-size: clamp(1.5rem, 8vw, 2.2rem);
+        font-size: clamp(1.3rem, 5vw + 0.5rem, 2.6rem);
         font-weight: 900;
-        color: #fff;
+        color: #fff !important;
         margin: 0.3rem 0 0 0;
         text-shadow: 0 0 15px rgba(231,76,60,0.6);
         line-height: 1.15;
@@ -61,52 +63,79 @@ st.markdown("""
     .custom-subtitle {
         text-align: center;
         color: #bdc3c7 !important;
-        font-size: clamp(0.7rem, 3vw, 0.9rem);
+        font-size: clamp(0.7rem, 1.5vw + 0.5rem, 1rem);
         margin: 0.4rem 0 0.8rem 0;
         padding: 0 8px;
         line-height: 1.5;
     }
 
-    /* ==== WELCOME CARD ==== */
+    /* -------- Welcome -------- */
     .welcome-box {
         text-align: center;
-        padding: 20px 12px;
+        padding: clamp(15px, 4vw, 30px) clamp(10px, 3vw, 20px);
         margin: 10px auto;
+        max-width: 600px;
         background: rgba(255,255,255,0.04);
         border: 1px solid rgba(255,255,255,0.1);
         border-radius: 15px;
     }
     .welcome-box .flag {
-        font-size: clamp(2rem, 10vw, 3rem);
+        font-size: clamp(2rem, 6vw, 3.5rem);
         line-height: 1;
     }
     .welcome-box .title {
-        font-size: clamp(1rem, 4vw, 1.3rem);
+        font-size: clamp(1rem, 2.5vw, 1.4rem);
         font-weight: 700;
         margin: 10px 0 6px 0;
-        color: #fff;
+        color: #fff !important;
         line-height: 1.3;
     }
     .welcome-box .hint {
-        font-size: clamp(0.75rem, 3vw, 0.9rem);
+        font-size: clamp(0.75rem, 1.5vw, 0.95rem);
         color: #95a5a6 !important;
         line-height: 1.6;
     }
 
-    /* ==== SIDEBAR ==== */
+    /* ======================================================
+       SIDEBAR — beautified + responsive
+       ====================================================== */
     section[data-testid="stSidebar"] {
-        background: #16213e !important;
-        border-right: 2px solid rgba(231,76,60,0.5) !important;
+        background: linear-gradient(180deg, #16213e 0%, #0f3460 100%) !important;
+        border-right: 2px solid rgba(231,76,60,0.4) !important;
+        box-shadow: 4px 0 20px rgba(0,0,0,0.3);
     }
-    section[data-testid="stSidebar"] * {
-        color: #fff !important;
+    section[data-testid="stSidebar"] > div:first-child {
+        padding: 1rem 0.8rem 2rem 0.8rem !important;
+    }
+    section[data-testid="stSidebar"] * { color: #fff !important; }
+
+    /* Sidebar header block */
+    section[data-testid="stSidebar"] h2 {
+        font-size: 1.4rem !important;
+        font-weight: 900 !important;
+        text-align: center;
+        padding: 0.5rem 0 0.2rem 0;
+        border-bottom: 1px solid rgba(231,76,60,0.3);
+        margin-bottom: 0.5rem !important;
     }
 
-    /* Dropdown — dark */
+    /* Sidebar section headers */
+    section[data-testid="stSidebar"] h3 {
+        font-size: 1rem !important;
+        color: #e74c3c !important;
+        margin-top: 1rem !important;
+        margin-bottom: 0.5rem !important;
+        border-left: 3px solid #e74c3c;
+        padding-left: 8px;
+    }
+
+    /* Dropdown (dark) */
     section[data-testid="stSidebar"] div[data-baseweb="select"] > div {
-        background: rgba(231,76,60,0.15) !important;
+        background: rgba(231,76,60,0.12) !important;
         border: 1px solid rgba(231,76,60,0.5) !important;
         color: #fff !important;
+        border-radius: 10px !important;
+        font-size: 0.9rem !important;
     }
     div[data-baseweb="popover"] * {
         background: #16213e !important;
@@ -116,8 +145,11 @@ st.markdown("""
     li[role="option"] {
         background: #16213e !important;
         color: #fff !important;
+        font-size: 0.9rem !important;
+        padding: 8px 12px !important;
     }
-    li[role="option"]:hover {
+    li[role="option"]:hover,
+    li[role="option"][aria-selected="true"] {
         background: rgba(231,76,60,0.3) !important;
     }
 
@@ -128,9 +160,14 @@ st.markdown("""
         border: none !important;
         border-radius: 10px !important;
         font-weight: 700 !important;
-        min-height: 40px !important;
+        min-height: 42px !important;
         font-size: 0.9rem !important;
         width: 100% !important;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    section[data-testid="stSidebar"] .stButton > button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(231,76,60,0.5);
     }
 
     /* Progress bars */
@@ -139,132 +176,215 @@ st.markdown("""
     }
     .stProgress > div > div {
         background: rgba(255,255,255,0.1) !important;
+        border-radius: 6px;
+    }
+    .stProgress p, .stProgress span {
+        font-size: 0.78rem !important;
     }
 
-    /* ==== CHAT MESSAGES — compact on phone ==== */
-    .stChatMessage {
-        background: rgba(255,255,255,0.05) !important;
-        border: 1px solid rgba(255,255,255,0.1) !important;
-        border-radius: 14px !important;
-        padding: 10px 12px !important;
-        margin-bottom: 8px !important;
-        font-size: 0.92rem !important;
-        line-height: 1.55 !important;
-    }
-    .stChatMessage.user {
-        background: rgba(231,76,60,0.12) !important;
-        border: 1px solid rgba(231,76,60,0.35) !important;
-    }
-    .stChatMessage p {
-        line-height: 1.55 !important;
-        margin: 0 !important;
-        word-wrap: break-word !important;
-    }
-
-    /* ==== CHAT INPUT — sticky at bottom, red border ==== */
-    div[data-testid="stChatInput"] {
-        background: #16213e !important;
-        border: 2px solid rgba(231,76,60,0.5) !important;
-        border-radius: 12px !important;
-    }
-    div[data-testid="stChatInput"] textarea,
-    div[data-testid="stChatInput"] input {
-        color: #fff !important;
-        font-size: 16px !important;
-        background: transparent !important;
-    }
-
-    /* ==== STAT CARDS ==== */
+    /* Sidebar stat cards */
     .stat-card {
         background: rgba(255,255,255,0.06);
         border: 1px solid rgba(255,255,255,0.12);
         border-radius: 12px;
-        padding: 10px 8px;
+        padding: clamp(8px, 1.5vw, 14px) clamp(6px, 1vw, 12px);
         text-align: center;
         margin-bottom: 8px;
     }
     .stat-number {
-        font-size: clamp(1rem, 4vw, 1.4rem);
+        font-size: clamp(1rem, 1.5vw + 0.5rem, 1.5rem);
         font-weight: 900;
         color: #e74c3c !important;
         line-height: 1.1;
     }
     .stat-label {
         color: #ecf0f1 !important;
-        font-size: clamp(0.6rem, 2.5vw, 0.75rem);
+        font-size: clamp(0.65rem, 1vw + 0.3rem, 0.8rem);
         margin-top: 3px;
     }
 
-    /* ==== FOOTER — tiny ==== */
+    /* ======================================================
+       CHAT MESSAGES — adaptive
+       ====================================================== */
+    .stChatMessage {
+        background: rgba(255,255,255,0.05) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        border-radius: 14px !important;
+        padding: clamp(8px, 1.5vw, 14px) clamp(10px, 2vw, 16px) !important;
+        margin-bottom: 10px !important;
+        font-size: clamp(0.85rem, 1vw + 0.5rem, 1rem) !important;
+        line-height: 1.6 !important;
+        max-width: 100% !important;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+    .stChatMessage.user {
+        background: rgba(231,76,60,0.12) !important;
+        border: 1px solid rgba(231,76,60,0.35) !important;
+    }
+    .stChatMessage p {
+        line-height: 1.6 !important;
+        margin: 0 !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+    }
+    .stChatMessage pre, .stChatMessage code {
+        white-space: pre-wrap !important;
+        word-break: break-word !important;
+        font-size: 0.85em !important;
+    }
+    .stChatMessage img {
+        max-width: 100% !important;
+        height: auto !important;
+    }
+
+    /* ======================================================
+       CHAT INPUT — adaptive
+       ====================================================== */
+    div[data-testid="stChatInput"] {
+        background: #16213e !important;
+        border: 2px solid rgba(231,76,60,0.5) !important;
+        border-radius: 12px !important;
+        margin: 0 auto !important;
+        max-width: 100% !important;
+    }
+    div[data-testid="stChatInput"] textarea,
+    div[data-testid="stChatInput"] input {
+        color: #fff !important;
+        font-size: clamp(0.95rem, 1vw + 0.5rem, 1rem) !important;
+        background: transparent !important;
+    }
+
+    /* ======================================================
+       FOOTER
+       ====================================================== */
     .footer-text {
         text-align: center;
         color: #7f8c8d !important;
-        padding: 10px 6px;
-        font-size: clamp(0.6rem, 2.4vw, 0.75rem);
+        padding: 15px 8px;
+        font-size: clamp(0.6rem, 0.5vw + 0.5rem, 0.8rem);
         line-height: 1.5;
         margin-top: 10px;
     }
 
     hr {
         border-color: rgba(255,255,255,0.08) !important;
-        margin: 0.6rem 0 !important;
+        margin: 0.8rem 0 !important;
     }
 
-    /* ==== SIDEBAR TOGGLE — always visible ==== */
+    /* ======================================================
+       SIDEBAR TOGGLE — always visible, styled
+       ====================================================== */
     [data-testid="stSidebarCollapsedControl"],
-    [data-testid="collapsedControl"] {
+    [data-testid="collapsedControl"],
+    button[kind="header"] {
         visibility: visible !important;
         display: block !important;
         opacity: 1 !important;
         z-index: 999999 !important;
     }
     [data-testid="stSidebarCollapsedControl"] svg,
-    [data-testid="collapsedControl"] svg {
+    [data-testid="collapsedControl"] svg,
+    button[kind="header"] svg {
         fill: #e74c3c !important;
-        width: 26px !important;
-        height: 26px !important;
+        color: #e74c3c !important;
+        width: 28px !important;
+        height: 28px !important;
     }
 
-    /* ==== MOBILE SPECIFIC ==== */
-    @media (max-width: 768px) {
-        .block-container {
-            padding: 0.4rem 0.5rem 6rem 0.5rem !important;
-        }
+    /* ======================================================
+       ADAPTIVE BREAKPOINTS
+       ====================================================== */
 
-        /* Column stacking on mobile */
+    /* ---- Small phones (< 400px) ---- */
+    @media (max-width: 400px) {
+        .block-container { padding: 0.4rem 0.4rem 4rem 0.4rem !important; }
+        .custom-title { font-size: 1.3rem; }
+        .custom-subtitle { font-size: 0.7rem; }
+        .welcome-box { padding: 14px 8px; }
+        .stChatMessage { font-size: 0.85rem !important; }
+        section[data-testid="stSidebar"] > div:first-child {
+            padding: 0.6rem 0.5rem 1.5rem 0.5rem !important;
+        }
+    }
+
+    /* ---- Phones (400–768px) ---- */
+    @media (max-width: 768px) {
+        .block-container { padding: 0.5rem 0.5rem 4rem 0.5rem !important; }
+
+        /* Force single-column stacking */
         div[data-testid="column"] {
             width: 100% !important;
             flex: 1 1 100% !important;
             min-width: 100% !important;
         }
 
-        /* Compact chat */
-        .stChatMessage {
-            padding: 8px 10px !important;
-            font-size: 0.88rem !important;
-            border-radius: 12px !important;
-        }
-
-        /* Buttons */
-        .stButton > button {
-            font-size: 0.85rem !important;
-            padding: 0.5rem 0.8rem !important;
-            min-height: 40px !important;
+        /* Sidebar full width on phones */
+        section[data-testid="stSidebar"] {
+            min-width: 85vw !important;
+            max-width: 85vw !important;
         }
     }
 
-    @media (max-width: 400px) {
-        .custom-title { font-size: 1.4rem; }
-        .custom-subtitle { font-size: 0.7rem; }
-        .welcome-box { padding: 15px 8px; }
-        .stChatMessage { font-size: 0.85rem !important; }
+    /* ---- Tablets (768px – 1024px) ---- */
+    @media (min-width: 769px) and (max-width: 1024px) {
+        .block-container { padding: 1rem 1.5rem 3rem 1.5rem !important; }
     }
 
+    /* ---- Desktop (1024px – 1440px) ---- */
+    @media (min-width: 1025px) and (max-width: 1440px) {
+        .block-container { max-width: 1000px !important; margin: 0 auto !important; }
+    }
+
+    /* ---- Large desktop (> 1440px) ---- */
+    @media (min-width: 1441px) {
+        .block-container { max-width: 1200px !important; margin: 0 auto !important; }
+        .custom-title { font-size: 3rem; }
+    }
+
+    /* ---- Landscape phone ---- */
+    @media (max-height: 500px) and (orientation: landscape) {
+        .custom-title { font-size: 1.3rem; margin-top: 0; }
+        .custom-subtitle { display: none; }
+        .welcome-box { padding: 12px; }
+        .welcome-box .flag { font-size: 1.8rem; }
+    }
+
+    /* ---- Touch devices (no hover) ---- */
+    @media (hover: none) {
+        .stButton > button:hover { transform: none; }
+    }
+
+    /* ---- Reduced motion ---- */
     @media (prefers-reduced-motion: reduce) {
         * { transition: none !important; animation: none !important; }
     }
     </style>
 """, unsafe_allow_html=True)
+
+# ============================================================
+# ADAPTIVE FUNCTION — detects screen size and returns config
+# ============================================================
+def get_layout_config():
+    """
+    Returns layout hints based on the browser's viewport.
+    Uses st.context.headers to guess mobile vs desktop.
+    """
+    try:
+        ua = st.context.headers.get("User-Agent", "").lower()
+    except Exception:
+        ua = ""
+
+    is_mobile = any(
+        kw in ua for kw in ["mobile", "android", "iphone", "ipad", "ipod"]
+    )
+
+    return {
+        "is_mobile": is_mobile,
+        "spinner_text": "🧠 جاري التحليل..." if not is_mobile else "🧠 أحلل...",
+    }
+
+layout = get_layout_config()
 
 # ============================================================
 # GROQ CLIENT
@@ -386,29 +506,39 @@ DOMAIN_MAP = {
 BASE_IDENTITY = "You are Houssem AI, created by Houssem Kessentini. "
 
 # ============================================================
-# SIDEBAR
+# SIDEBAR — clean, sectioned, beautified
 # ============================================================
 with st.sidebar:
-    st.markdown("## ⚡ Houssem AI")
-    st.caption("🛡️ بدون تسجيل — استخدام مباشر")
+    # ---- Header ----
+    st.markdown("""
+        <div style="text-align:center;padding:8px 0 12px 0;">
+            <div style="font-size:2rem;">⚡</div>
+            <div style="font-size:1.3rem;font-weight:900;color:#e74c3c;">Houssem AI</div>
+            <div style="font-size:0.7rem;color:#bdc3c7;">🛡️ استخدام مباشر بدون تسجيل</div>
+        </div>
+    """, unsafe_allow_html=True)
+
     st.markdown("---")
 
-    st.markdown("### ⚙️ لوحة التحكم")
+    # ---- Domain ----
+    st.markdown("### 🎯 المجال التحليلي")
     st.session_state.domain_choice = st.selectbox(
-        "🎯 المجال التحليلي:",
+        "اختر المجال:",
         list(DOMAIN_MAP.keys()),
         index=list(DOMAIN_MAP.keys()).index(st.session_state.domain_choice),
         key="domain_selector",
+        label_visibility="collapsed",
     )
     domain = st.session_state.domain_choice
 
     st.markdown("---")
-    st.markdown("### 📊 استهلاكك")
 
+    # ---- Usage ----
+    st.markdown("### 📊 استهلاكك")
     try:
         usage = rate_usage(client_ip)
         limits_map = {"minute": 15, "hour": 200, "day": 1500}
-        labels_map = {"minute": "دقيقة", "hour": "ساعة", "day": "يوم"}
+        labels_map = {"minute": "⏱️ دقيقة", "hour": "⏰ ساعة", "day": "📅 يوم"}
         for window, count in usage.items():
             limit = limits_map.get(window, 1)
             label = labels_map.get(window, window)
@@ -419,33 +549,35 @@ with st.sidebar:
 
     st.markdown("---")
 
-    st.markdown("### 👥 الزوار")
-    st.markdown(f"""
-        <div class="stat-card">
-            <div class="stat-number">{total_visits}</div>
-            <div class="stat-label">إجمالي الزيارات</div>
-        </div>
-    """, unsafe_allow_html=True)
-
-    st.markdown("---")
-
+    # ---- Stats ----
+    st.markdown("### 📈 إحصائيات")
     col1, col2 = st.columns(2)
     with col1:
         st.markdown(f"""
             <div class="stat-card">
                 <div class="stat-number">{st.session_state.conversation_count}</div>
-                <div class="stat-label">الرسائل</div>
+                <div class="stat-label">رسائل</div>
             </div>
         """, unsafe_allow_html=True)
     with col2:
         st.markdown(f"""
             <div class="stat-card">
                 <div class="stat-number">{len(st.session_state.messages)}</div>
-                <div class="stat-label">المحادثة</div>
+                <div class="stat-label">محادثة</div>
             </div>
         """, unsafe_allow_html=True)
 
+    st.markdown(f"""
+        <div class="stat-card">
+            <div class="stat-number">{total_visits}</div>
+            <div class="stat-label">👥 زوار الموقع</div>
+        </div>
+    """, unsafe_allow_html=True)
+
     st.markdown("---")
+
+    # ---- Actions ----
+    st.markdown("### ⚙️ إجراءات")
 
     if st.session_state.messages:
         chat_text = "\n".join(
@@ -469,17 +601,15 @@ with st.sidebar:
     st.caption(f"🌍 IP: `{client_ip}`")
 
 # ============================================================
-# MAIN AREA — TITLE
+# MAIN AREA
 # ============================================================
 st.markdown('<h1 class="custom-title">⚡ Houssem AI</h1>', unsafe_allow_html=True)
 st.markdown(
-    '<p class="custom-subtitle">🇹🇳 أول ذكاء اصطناعي تونسي متقدم</p>',
+    '<p class="custom-subtitle">🇹🇳 أول ذكاء اصطناعي تونسي متقدم — مطور بواسطة حسام القسنطيني</p>',
     unsafe_allow_html=True,
 )
 
-# ============================================================
-# WELCOME
-# ============================================================
+# ---- Welcome ----
 if not st.session_state.messages:
     st.markdown("""
         <div class="welcome-box">
@@ -492,9 +622,7 @@ if not st.session_state.messages:
         </div>
     """, unsafe_allow_html=True)
 
-# ============================================================
-# CHAT HISTORY
-# ============================================================
+# ---- Chat history ----
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
@@ -517,41 +645,42 @@ if prompt := st.chat_input("اكتب سؤالك هنا..."):
 
     with st.chat_message("assistant"):
         try:
-            system_instruction = BASE_IDENTITY + DOMAIN_MAP[domain]
+            with st.spinner(layout["spinner_text"]):
+                system_instruction = BASE_IDENTITY + DOMAIN_MAP[domain]
 
-            history = st.session_state.messages[-20:]
-            api_messages = [{"role": "system", "content": system_instruction}]
-            api_messages.extend(
-                {"role": m["role"], "content": m["content"]} for m in history
-            )
+                history = st.session_state.messages[-20:]
+                api_messages = [{"role": "system", "content": system_instruction}]
+                api_messages.extend(
+                    {"role": m["role"], "content": m["content"]} for m in history
+                )
 
-            stream = client.chat.completions.create(
-                model="openai/gpt-oss-20b",
-                messages=api_messages,
-                temperature=0.4,
-                max_tokens=2048,
-                stream=True,
-            )
+                stream = client.chat.completions.create(
+                    model="openai/gpt-oss-20b",
+                    messages=api_messages,
+                    temperature=0.4,
+                    max_tokens=2048,
+                    stream=True,
+                )
 
-            full_response = ""
-            placeholder = st.empty()
-            buffer = []
+                full_response = ""
+                placeholder = st.empty()
+                buffer = []
 
-            for chunk in stream:
-                if chunk.choices and chunk.choices[0].delta.content:
-                    buffer.append(chunk.choices[0].delta.content)
-                    if len(buffer) >= 5:
-                        full_response += "".join(buffer)
-                        buffer.clear()
-                        placeholder.markdown(full_response + "▌")
+                for chunk in stream:
+                    if chunk.choices and chunk.choices[0].delta.content:
+                        buffer.append(chunk.choices[0].delta.content)
+                        if len(buffer) >= 5:
+                            full_response += "".join(buffer)
+                            buffer.clear()
+                            placeholder.markdown(full_response + "▌")
 
-            if buffer:
-                full_response += "".join(buffer)
-            placeholder.markdown(full_response)
+                if buffer:
+                    full_response += "".join(buffer)
+                placeholder.markdown(full_response)
 
-            st.session_state.messages.append(
-                {"role": "assistant", "content": full_response}
-            )
+                st.session_state.messages.append(
+                    {"role": "assistant", "content": full_response}
+                )
 
         except Exception as e:
             st.error(f"❌ خطأ تقني: {e}")
