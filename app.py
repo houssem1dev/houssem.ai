@@ -10,12 +10,15 @@ from groq import Groq
 # PAGE CONFIG
 # ============================================================
 st.set_page_config(
-    page_title="حسام القسنطيني — أول ذكاء اصطناعي تونسي",
+    page_title="Houssem AI",
     page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
+# ============================================================
+# META
+# ============================================================
 st.markdown("""
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#1a1a1a">
@@ -27,8 +30,6 @@ st.markdown("""
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap');
-    @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0&display=swap');
-    @import url('https://fonts.googleapis.com/icon?family=Material+Icons');
 
     *, *::before, *::after { box-sizing: border-box; }
     html, body {
@@ -60,65 +61,22 @@ st.markdown("""
         font-family: 'Cairo', sans-serif !important;
     }
 
-    /* Material icon font fix */
-    [data-testid="stIconMaterial"],
-    .material-symbols-rounded,
-    .material-symbols-outlined,
-    .material-icons {
-        font-family: 'Material Symbols Rounded', 'Material Icons', sans-serif !important;
-        font-weight: normal !important;
-        font-style: normal !important;
-        line-height: 1 !important;
-        letter-spacing: normal !important;
-        text-transform: none !important;
-        display: inline-block !important;
-        white-space: nowrap !important;
-        direction: ltr !important;
-        -webkit-font-smoothing: antialiased !important;
-    }
-
-    /* Hide sidebar close button */
+    /* Hide the native Streamlit sidebar toggle */
+    [data-testid="stSidebarCollapsedControl"],
+    [data-testid="collapsedControl"],
     [data-testid="stSidebarCollapseButton"],
-    [data-testid="stSidebarCollapseButton"] *,
-    button[aria-label="Close sidebar"] {
+    button[aria-label*="sidebar"],
+    button[aria-label*="Sidebar"] {
         display: none !important;
         visibility: hidden !important;
     }
 
-    /* Mobile sidebar toggle */
-    [data-testid="stSidebarCollapsedControl"],
-    [data-testid="collapsedControl"] {
-        visibility: visible !important;
-        display: block !important;
-        opacity: 1 !important;
-        z-index: 2147483647 !important;
-        position: fixed !important;
-        top: 16px !important;
-        left: 16px !important;
-        width: 48px !important;
-        height: 48px !important;
-        background: linear-gradient(135deg, #e70013, #b30010) !important;
-        border: 2px solid rgba(255,255,255,0.25) !important;
-        border-radius: 14px !important;
-        box-shadow: 0 6px 20px rgba(231,0,19,0.6) !important;
-        padding: 0 !important;
-        cursor: pointer !important;
-    }
-    [data-testid="stSidebarCollapsedControl"] svg,
-    [data-testid="collapsedControl"] svg {
-        display: none !important;
-    }
-    [data-testid="stSidebarCollapsedControl"]::before,
-    [data-testid="collapsedControl"]::before {
-        content: "☰" !important;
-        font-size: 26px !important;
-        color: #fff !important;
-        font-family: sans-serif !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        width: 100% !important;
-        height: 100% !important;
+    /* Our custom sidebar toggle — floating button top-left */
+    .custom-sidebar-toggle {
+        position: fixed;
+        top: 16px;
+        left: 16px;
+        z-index: 2147483647;
     }
 
     /* SIDEBAR */
@@ -185,7 +143,7 @@ st.markdown("""
         border-color: #3a3a3a !important;
     }
 
-    /* Dropdown — force dark */
+    /* Dropdown — dark */
     section[data-testid="stSidebar"] div[data-baseweb="select"],
     section[data-testid="stSidebar"] div[data-baseweb="select"] > div,
     section[data-testid="stSidebar"] div[data-baseweb="select"] > div > div,
@@ -468,6 +426,23 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ============================================================
+# CUSTOM SIDEBAR TOGGLE — a real button that opens the sidebar
+# ============================================================
+if "sidebar_open" not in st.session_state:
+    st.session_state.sidebar_open = True
+
+# The toggle button, floating top-left
+st.markdown("""
+    <div class="custom-sidebar-toggle"></div>
+""", unsafe_allow_html=True)
+
+toggle_col1, toggle_col2, toggle_col3 = st.columns([0.12, 0.76, 0.12])
+with toggle_col1:
+    if st.button("☰", key="sidebar_toggle_btn", help="فتح / إغلاق القائمة"):
+        st.session_state.sidebar_open = not st.session_state.sidebar_open
+        st.rerun()
+
+# ============================================================
 # GROQ
 # ============================================================
 def get_groq_client():
@@ -554,6 +529,12 @@ if "domain_choice" not in st.session_state:
     st.session_state.domain_choice = ""
 
 # ============================================================
+# 🎯 YOUR NAME — change this line to change it everywhere
+# ============================================================
+MY_NAME_AR = "حسام القسنطيني"
+MY_NAME_EN = "Houssem Kessentini"
+
+# ============================================================
 # DOMAIN MAP
 # ============================================================
 DOMAIN_MAP = {
@@ -565,111 +546,116 @@ DOMAIN_MAP = {
 }
 
 BASE_IDENTITY = (
-    "You are Houssem AI (حسام الذكاء الاصطناعي), "
-    "created by Houssem Kessentini (حسام القسنطيني) from Sfax, Tunisia. "
+    f"You are Houssem AI (حسام الذكاء الاصطناعي), "
+    f"created by {MY_NAME_EN} ({MY_NAME_AR}) from Sfax, Tunisia. "
     "When asked who you are or who made you, always say: "
-    "'أنا Houssem AI، أول ذكاء اصطناعي تونسي، طورني حسام القسنطيني من صفاقس، تونس.' "
+    f"'أنا Houssem AI، أول ذكاء اصطناعي تونسي، طورني {MY_NAME_AR} من صفاقس، تونس.' "
 )
 
 # ============================================================
 # SIDEBAR
 # ============================================================
-with st.sidebar:
-    st.markdown("""
-        <div class="sidebar-brand">
-            <div class="sidebar-logo"></div>
-            <div class="sidebar-name">حسام القسنطيني</div>
-        </div>
-    """, unsafe_allow_html=True)
+if st.session_state.sidebar_open:
+    with st.sidebar:
+        st.markdown(
+            '<div class="sidebar-brand">'
+            '<div class="sidebar-logo"></div>'
+            f'<div class="sidebar-name">{MY_NAME_AR}</div>'
+            '</div>',
+            unsafe_allow_html=True
+        )
 
-    st.markdown("### 🎯 المجال")
+        st.markdown("### 🎯 المجال")
 
-    _domain_options = list(DOMAIN_MAP.keys())
-    if st.session_state.domain_choice not in _domain_options:
-        st.session_state.domain_choice = _domain_options[0]
+        _domain_options = list(DOMAIN_MAP.keys())
+        if st.session_state.domain_choice not in _domain_options:
+            st.session_state.domain_choice = _domain_options[0]
 
-    st.session_state.domain_choice = st.selectbox(
-        "المجال",
-        _domain_options,
-        index=_domain_options.index(st.session_state.domain_choice),
-        key="domain_selector",
-        label_visibility="collapsed",
-    )
-    domain = st.session_state.domain_choice
+        st.session_state.domain_choice = st.selectbox(
+            "المجال",
+            _domain_options,
+            index=_domain_options.index(st.session_state.domain_choice),
+            key="domain_selector",
+            label_visibility="collapsed",
+        )
+        domain = st.session_state.domain_choice
 
-    st.markdown("### 📊 الاستهلاك")
-    try:
-        usage = rate_usage(client_ip)
-        limits_map = {"minute": 15, "hour": 200, "day": 1500}
-        labels_map = {"minute": "دقيقة", "hour": "ساعة", "day": "يوم"}
-        st.markdown('<div class="usage-mini">', unsafe_allow_html=True)
-        for window in ["minute", "hour", "day"]:
-            count = usage.get(window, 0)
-            limit = limits_map[window]
-            label = labels_map[window]
-            pct = (count / limit) * 100 if limit else 0
-            html = (
-                '<div class="usage-item-mini">'
-                '<div class="usage-head-mini">'
-                f'<span>{label}</span>'
-                f'<span>{count} / {limit}</span>'
-                '</div>'
-                '<div class="usage-bar-mini">'
-                f'<div class="usage-bar-mini-fill" style="width:{max(pct,1)}%;"></div>'
-                '</div>'
-                '</div>'
+        st.markdown("### 📊 الاستهلاك")
+        try:
+            usage = rate_usage(client_ip)
+            limits_map = {"minute": 15, "hour": 200, "day": 1500}
+            labels_map = {"minute": "دقيقة", "hour": "ساعة", "day": "يوم"}
+            st.markdown('<div class="usage-mini">', unsafe_allow_html=True)
+            for window in ["minute", "hour", "day"]:
+                count = usage.get(window, 0)
+                limit = limits_map[window]
+                label = labels_map[window]
+                pct = (count / limit) * 100 if limit else 0
+                html = (
+                    '<div class="usage-item-mini">'
+                    '<div class="usage-head-mini">'
+                    f'<span>{label}</span>'
+                    f'<span>{count} / {limit}</span>'
+                    '</div>'
+                    '<div class="usage-bar-mini">'
+                    f'<div class="usage-bar-mini-fill" style="width:{max(pct,1)}%;"></div>'
+                    '</div>'
+                    '</div>'
+                )
+                st.markdown(html, unsafe_allow_html=True)
+            st.markdown('</div>', unsafe_allow_html=True)
+        except Exception:
+            pass
+
+        st.markdown("### 📈 الإحصائيات")
+        stats_html = (
+            '<div class="stats-mini">'
+            '<div class="stat-mini">'
+            f'<div class="stat-mini-num">{st.session_state.conversation_count}</div>'
+            '<div class="stat-mini-label">رسائل</div>'
+            '</div>'
+            '<div class="stat-mini">'
+            f'<div class="stat-mini-num">{total_visits}</div>'
+            '<div class="stat-mini-label">زوار</div>'
+            '</div>'
+            '</div>'
+        )
+        st.markdown(stats_html, unsafe_allow_html=True)
+
+        st.markdown("### ⚙️ الإجراءات")
+
+        if st.session_state.messages:
+            chat_text = "\n".join(
+                f"{'👤' if m['role'] == 'user' else '🤖'}: {m['content']}"
+                for m in st.session_state.messages
             )
-            st.markdown(html, unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
-    except Exception:
-        pass
+            st.download_button(
+                "📥 تصدير المحادثة",
+                data=chat_text,
+                file_name=f"houssem_ai_chat_{datetime.now().strftime('%Y%m%d_%H%M')}.txt",
+                mime="text/plain",
+                use_container_width=True,
+            )
 
-    st.markdown("### 📈 الإحصائيات")
-    stats_html = (
-        '<div class="stats-mini">'
-        '<div class="stat-mini">'
-        f'<div class="stat-mini-num">{st.session_state.conversation_count}</div>'
-        '<div class="stat-mini-label">رسائل</div>'
-        '</div>'
-        '<div class="stat-mini">'
-        f'<div class="stat-mini-num">{total_visits}</div>'
-        '<div class="stat-mini-label">زوار</div>'
-        '</div>'
-        '</div>'
-    )
-    st.markdown(stats_html, unsafe_allow_html=True)
-
-    st.markdown("### ⚙️ الإجراءات")
-
-    if st.session_state.messages:
-        chat_text = "\n".join(
-            f"{'👤' if m['role'] == 'user' else '🤖'}: {m['content']}"
-            for m in st.session_state.messages
-        )
-        st.download_button(
-            "📥 تصدير المحادثة",
-            data=chat_text,
-            file_name=f"houssem_ai_chat_{datetime.now().strftime('%Y%m%d_%H%M')}.txt",
-            mime="text/plain",
-            use_container_width=True,
-        )
-
-    if st.button("🗑 محادثة جديدة", use_container_width=True):
-        st.session_state.messages = []
-        st.session_state.conversation_count = 0
-        st.rerun()
+        if st.button("🗑 محادثة جديدة", use_container_width=True):
+            st.session_state.messages = []
+            st.session_state.conversation_count = 0
+            st.rerun()
+else:
+    domain = st.session_state.domain_choice or list(DOMAIN_MAP.keys())[0]
 
 # ============================================================
 # MAIN — HERO
 # ============================================================
 if not st.session_state.messages:
-    st.markdown("""
-        <div class="hero-ds">
-            <div class="hero-ds-logo"></div>
-            <h1 class="hero-ds-title">كيف يمكنني مساعدتك؟</h1>
-            <p class="hero-ds-sub">حسام القسنطيني — أول ذكاء اصطناعي تونسي متقدم</p>
-        </div>
-    """, unsafe_allow_html=True)
+    st.markdown(
+        '<div class="hero-ds">'
+        '<div class="hero-ds-logo"></div>'
+        '<h1 class="hero-ds-title">كيف يمكنني مساعدتك؟</h1>'
+        f'<p class="hero-ds-sub">{MY_NAME_AR} — أول ذكاء اصطناعي تونسي متقدم</p>'
+        '</div>',
+        unsafe_allow_html=True
+    )
 
     st.markdown("""
         <div class="suggest-grid">
@@ -704,13 +690,14 @@ for message in st.session_state.messages:
 # FOOTER
 # ============================================================
 if st.session_state.messages:
-    st.markdown("""
-        <div class="footer-ds">
-            <strong>حسام القسنطيني</strong> · أول ذكاء اصطناعي تونسي<br>
-            من صفاقس، تونس 🇹🇳<br>
-            Powered by Groq AI
-        </div>
-    """, unsafe_allow_html=True)
+    st.markdown(
+        '<div class="footer-ds">'
+        f'<strong>{MY_NAME_AR}</strong> · أول ذكاء اصطناعي تونسي<br>'
+        'من صفاقس، تونس 🇹🇳<br>'
+        'Powered by Groq AI'
+        '</div>',
+        unsafe_allow_html=True
+    )
 
 # ============================================================
 # INPUT
