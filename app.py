@@ -54,29 +54,17 @@ st.markdown("""
         font-family: 'Cairo', sans-serif !important;
     }
 
-    /* ============================================================
-       KILL MATERIAL ICONS — the source of "smart_toggle" / "face"
-       ============================================================ */
+    /* Material icons font fix */
     .material-symbols-rounded,
     .material-symbols-outlined,
     .material-icons,
-    .material-icons-round,
-    .material-icons-sharp,
     [data-testid="stIconMaterial"] {
         font-family: 'Material Symbols Rounded', 'Material Icons', sans-serif !important;
         font-weight: normal !important;
         font-style: normal !important;
-        line-height: 1 !important;
         letter-spacing: normal !important;
         text-transform: none !important;
-        display: inline-block !important;
-        white-space: nowrap !important;
-        word-wrap: normal !important;
-        direction: ltr !important;
         -webkit-font-smoothing: antialiased !important;
-        text-rendering: optimizeLegibility !important;
-        -moz-osx-font-smoothing: grayscale !important;
-        font-feature-settings: 'liga' !important;
     }
 
     /* SIDEBAR */
@@ -152,10 +140,7 @@ st.markdown("""
         font-size: 0.85rem !important;
         direction: rtl !important;
     }
-    div[data-baseweb="popover"] * {
-        background: #1f1f1f !important;
-        color: #ececec !important;
-    }
+    div[data-baseweb="popover"] * { background: #1f1f1f !important; color: #ececec !important; }
     ul[role="listbox"] { background: #1f1f1f !important; border-radius: 10px !important; }
     li[role="option"] {
         background: #1f1f1f !important;
@@ -261,9 +246,7 @@ st.markdown("""
         font-size: 0.72rem; color: #8a8a8a !important; line-height: 1.4;
     }
 
-    /* ============================================================
-       CHAT — HARD KILL of avatars
-       ============================================================ */
+    /* CHAT */
     .stChatMessage {
         background: transparent !important;
         border: none !important;
@@ -273,34 +256,21 @@ st.markdown("""
         border-radius: 0 !important;
     }
 
-    /* Kill any avatar / icon element inside chat */
-    .stChatMessage [data-testid="stChatMessageAvatar"],
-    .stChatMessage [data-testid="stIconMaterial"],
-    .stChatMessage [data-testid="chatAvatarIcon-user"],
-    .stChatMessage [data-testid="chatAvatarIcon-assistant"],
-    .stChatMessage .material-symbols-rounded,
-    .stChatMessage .material-symbols-outlined,
-    .stChatMessage .material-icons,
+    /* Kill the avatar column */
     .stChatMessage > div:first-child {
         display: none !important;
         visibility: hidden !important;
         width: 0 !important;
         height: 0 !important;
-        font-size: 0 !important;
         overflow: hidden !important;
     }
 
-    /* Body of chat takes full width */
     .stChatMessage > div:nth-child(2) {
         display: block !important;
         visibility: visible !important;
         padding-left: 0 !important;
         margin-left: 0 !important;
         width: 100% !important;
-    }
-
-    .stChatMessage > div:nth-child(2) * {
-        visibility: visible !important;
     }
 
     .stChatMessage p {
@@ -652,10 +622,11 @@ if not st.session_state.messages:
     """, unsafe_allow_html=True)
 
 # ============================================================
-# CHAT — pass empty avatar to disable default icons
+# CHAT — using emoji avatars (Streamlit accepts these)
 # ============================================================
 for message in st.session_state.messages:
-    with st.chat_message(message["role"], avatar=" "):
+    avatar = "⚡" if message["role"] == "assistant" else "👤"
+    with st.chat_message(message["role"], avatar=avatar):
         st.markdown(message["content"])
 
 if st.session_state.messages:
@@ -679,10 +650,10 @@ if prompt := st.chat_input("اكتب رسالتك هنا..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     st.session_state.conversation_count += 1
 
-    with st.chat_message("user", avatar=" "):
+    with st.chat_message("user", avatar="👤"):
         st.markdown(prompt)
 
-    with st.chat_message("assistant", avatar=" "):
+    with st.chat_message("assistant", avatar="⚡"):
         try:
             system_instruction = BASE_IDENTITY + DOMAIN_MAP[domain]
             history = st.session_state.messages[-20:]
