@@ -6,9 +6,6 @@ import streamlit as st
 import requests
 from groq import Groq
 
-# ============================================================
-# PAGE CONFIG
-# ============================================================
 st.set_page_config(
     page_title="Houssem AI",
     page_icon="⚡",
@@ -16,31 +13,18 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# ============================================================
-# META
-# ============================================================
 st.markdown("""
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#0a0e1a">
 """, unsafe_allow_html=True)
 
-# ============================================================
-# NEW DESIGN — Fresh, clean, adaptive
-# ============================================================
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Inter:wght@400;600;700&display=swap');
 
-    /* ============================================================
-       RESET
-       ============================================================ */
-    *, *::before, *::after {
-        box-sizing: border-box;
-        -webkit-tap-highlight-color: transparent;
-    }
+    *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     html, body {
-        margin: 0;
-        padding: 0;
+        margin: 0; padding: 0;
         background: #0a0e1a;
         font-family: 'Cairo', 'Inter', sans-serif;
         color: #e8eaf0;
@@ -48,133 +32,71 @@ st.markdown("""
         overflow-x: hidden;
     }
 
-    /* ============================================================
-       HIDE STREAMLIT CHROME — softly
-       ============================================================ */
+    /* Hide chrome */
     #MainMenu { visibility: hidden; }
     footer { visibility: hidden; }
-    header[data-testid="stHeader"] {
-        background: transparent !important;
-        height: 0;
-    }
+    header[data-testid="stHeader"] { background: transparent !important; height: 0; }
     div[data-testid="stToolbar"] { display: none !important; }
     div[data-testid="stDecoration"] { display: none !important; }
     .stDeployButton { display: none !important; }
 
-    /* ============================================================
-       APP BACKGROUND — single solid color, no gradient fighting
-       ============================================================ */
-    .stApp {
-        background: #0a0e1a !important;
-    }
-    [data-testid="stAppViewContainer"] {
-        background: #0a0e1a !important;
-    }
-    section.main {
-        background: transparent !important;
-    }
+    /* Background */
+    .stApp { background: #0a0e1a !important; }
+    [data-testid="stAppViewContainer"] { background: #0a0e1a !important; }
+    section.main { background: transparent !important; }
 
-    /* ============================================================
-       CONTAINER — adaptive padding
-       ============================================================ */
+    /* Container */
     .block-container {
         padding: 1.25rem 1rem 6rem 1rem !important;
         max-width: 100% !important;
     }
 
-    /* ============================================================
-       TYPOGRAPHY
-       ============================================================ */
-    h1, h2, h3, h4, h5, h6, p, span, div, label, li, a {
-        color: #e8eaf0 !important;
-    }
+    /* Typography */
+    h1, h2, h3, h4, h5, h6, p, span, div, label, li, a { color: #e8eaf0 !important; }
 
-    /* ============================================================
-       HERO / HEADER
-       ============================================================ */
-    .hero {
-        text-align: center;
-        padding: 1rem 0 2rem 0;
-        margin-bottom: 0.5rem;
-    }
+    /* Hero */
+    .hero { text-align: center; padding: 1rem 0 2rem 0; margin-bottom: 0.5rem; }
     .hero-logo {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 64px;
-        height: 64px;
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 64px; height: 64px;
         background: linear-gradient(135deg, #ff4d4d, #c81e1e);
-        border-radius: 18px;
-        font-size: 1.8rem;
-        margin-bottom: 0.75rem;
+        border-radius: 18px; font-size: 1.8rem; margin-bottom: 0.75rem;
         box-shadow: 0 8px 32px rgba(255,77,77,0.35);
     }
     .hero-title {
         font-size: clamp(1.5rem, 5vw, 2.2rem);
-        font-weight: 900;
-        color: #fff !important;
-        line-height: 1.15;
-        margin: 0.25rem 0;
-        letter-spacing: -0.02em;
+        font-weight: 900; color: #fff !important;
+        line-height: 1.15; margin: 0.25rem 0; letter-spacing: -0.02em;
     }
     .hero-subtitle {
         font-size: clamp(0.75rem, 2.5vw, 0.95rem);
-        color: #8892a6 !important;
-        font-weight: 500;
-        margin-top: 0.35rem;
-        line-height: 1.5;
-        padding: 0 1rem;
+        color: #8892a6 !important; font-weight: 500;
+        margin-top: 0.35rem; line-height: 1.5; padding: 0 1rem;
     }
 
-    /* ============================================================
-       CARDS — universal building block
-       ============================================================ */
+    /* Cards */
     .card {
-        background: #131824;
-        border: 1px solid #1e2433;
-        border-radius: 16px;
-        padding: 1.1rem 1.15rem;
-        margin-bottom: 0.85rem;
-    }
-    .card-accent {
-        background: linear-gradient(135deg, #1a1f2e, #131824);
-        border: 1px solid rgba(255,77,77,0.25);
-        border-radius: 16px;
-        padding: 1.1rem 1.15rem;
-        margin-bottom: 0.85rem;
+        background: #131824; border: 1px solid #1e2433;
+        border-radius: 16px; padding: 1.1rem 1.15rem; margin-bottom: 0.85rem;
     }
 
-    /* ============================================================
-       WELCOME CARD
-       ============================================================ */
+    /* Welcome */
     .welcome {
-        text-align: center;
-        padding: 2rem 1rem;
+        text-align: center; padding: 2rem 1rem;
         background: linear-gradient(135deg, #131824, #0f1420);
-        border: 1px solid #1e2433;
-        border-radius: 20px;
-        margin-bottom: 1rem;
+        border: 1px solid #1e2433; border-radius: 20px; margin-bottom: 1rem;
     }
-    .welcome-flag {
-        font-size: 2.5rem;
-        margin-bottom: 0.5rem;
-        display: block;
-    }
+    .welcome-flag { font-size: 2.5rem; margin-bottom: 0.5rem; display: block; }
     .welcome-title {
         font-size: clamp(1.1rem, 3.5vw, 1.4rem);
-        font-weight: 800;
-        color: #fff !important;
-        margin-bottom: 0.35rem;
+        font-weight: 800; color: #fff !important; margin-bottom: 0.35rem;
     }
     .welcome-hint {
         font-size: clamp(0.8rem, 2.5vw, 0.9rem);
-        color: #8892a6 !important;
-        line-height: 1.6;
+        color: #8892a6 !important; line-height: 1.6;
     }
 
-    /* ============================================================
-       CHAT MESSAGES
-       ============================================================ */
+    /* Chat messages */
     .stChatMessage {
         background: #131824 !important;
         border: 1px solid #1e2433 !important;
@@ -189,14 +111,9 @@ st.markdown("""
         background: linear-gradient(135deg, #2a1518, #1f1013) !important;
         border: 1px solid rgba(255,77,77,0.3) !important;
     }
-    .stChatMessage p {
-        color: #e8eaf0 !important;
-        margin: 0 !important;
-    }
+    .stChatMessage p { color: #e8eaf0 !important; margin: 0 !important; }
 
-    /* ============================================================
-       CHAT INPUT — clean, floating
-       ============================================================ */
+    /* Bottom container */
     div[data-testid="stBottom"],
     div[data-testid="stBottom"] > div,
     div[data-testid="stBottomBlockContainer"] {
@@ -205,12 +122,16 @@ st.markdown("""
         box-shadow: none !important;
         padding: 0.5rem 0 !important;
     }
+
+    /* Chat input */
     div[data-testid="stChatInput"] {
         background: #131824 !important;
         border: 1.5px solid #2a3142 !important;
         border-radius: 16px !important;
         box-shadow: 0 4px 24px rgba(0,0,0,0.4) !important;
         transition: border-color 0.2s;
+        display: flex !important;
+        align-items: center !important;
     }
     div[data-testid="stChatInput"]:focus-within {
         border-color: #ff4d4d !important;
@@ -220,28 +141,47 @@ st.markdown("""
         background: transparent !important;
         font-size: 1rem !important;
     }
+
+    /* FIXED: send button */
     div[data-testid="stChatInput"] button {
+        min-width: 40px !important;
+        min-height: 40px !important;
+        width: 40px !important;
+        height: 40px !important;
+        border-radius: 50% !important;
+        flex-shrink: 0 !important;
+        margin-right: 6px !important;
+        padding: 0 !important;
         background: linear-gradient(135deg, #ff4d4d, #c81e1e) !important;
         border: none !important;
-        border-radius: 10px !important;
-        color: #fff !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
     }
     div[data-testid="stChatInput"] button svg {
         fill: #fff !important;
+        width: 18px !important;
+        height: 18px !important;
     }
 
     /* ============================================================
-       SIDEBAR
+       SIDEBAR — FIXED for Arabic + wider
        ============================================================ */
     section[data-testid="stSidebar"] {
         background: #0f1420 !important;
         border-right: 1px solid #1e2433 !important;
+        min-width: 340px !important;
+        width: 340px !important;
     }
     section[data-testid="stSidebar"] > div:first-child {
         padding: 1.25rem 1rem 2rem 1rem !important;
+        width: 340px !important;
     }
     section[data-testid="stSidebar"] * {
         color: #e8eaf0 !important;
+        white-space: normal !important;
+        overflow: visible !important;
+        text-overflow: clip !important;
     }
     section[data-testid="stSidebar"] h3 {
         font-size: 0.8rem !important;
@@ -250,6 +190,12 @@ st.markdown("""
         letter-spacing: 0.08em;
         font-weight: 700;
         margin: 1.25rem 0 0.6rem 0 !important;
+        padding-right: 8px !important;
+        padding-left: 0 !important;
+        border-left: none !important;
+        border-right: 3px solid #ff4d4d !important;
+        direction: rtl !important;
+        text-align: right !important;
     }
     section[data-testid="stSidebar"] .stButton > button {
         background: #1a1f2e !important;
@@ -274,6 +220,7 @@ st.markdown("""
         border-radius: 12px !important;
         min-height: 44px;
         font-size: 0.9rem !important;
+        direction: rtl !important;
     }
     div[data-baseweb="popover"] * {
         background: #1a1f2e !important;
@@ -288,6 +235,8 @@ st.markdown("""
         color: #e8eaf0 !important;
         padding: 10px 14px !important;
         font-size: 0.88rem !important;
+        direction: rtl !important;
+        text-align: right !important;
     }
     li[role="option"]:hover,
     li[role="option"][aria-selected="true"] {
@@ -295,14 +244,8 @@ st.markdown("""
         color: #ff6b6b !important;
     }
 
-    /* ============================================================
-       USAGE — modern minimal
-       ============================================================ */
-    .usage-block {
-        display: flex;
-        flex-direction: column;
-        gap: 0.6rem;
-    }
+    /* Usage bars */
+    .usage-block { display: flex; flex-direction: column; gap: 0.6rem; }
     .usage-row {
         background: #131824;
         border: 1px solid #1e2433;
@@ -344,9 +287,7 @@ st.markdown("""
     .fill-mid { background: #f39c12; }
     .fill-high { background: #ff4d4d; }
 
-    /* ============================================================
-       STATS — minimal
-       ============================================================ */
+    /* Stats */
     .stat-grid {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
@@ -359,9 +300,7 @@ st.markdown("""
         padding: 0.9rem 0.5rem;
         text-align: center;
     }
-    .stat-box-wide {
-        grid-column: 1 / -1;
-    }
+    .stat-box-wide { grid-column: 1 / -1; }
     .stat-box-num {
         font-size: 1.35rem;
         font-weight: 800;
@@ -378,9 +317,7 @@ st.markdown("""
         font-weight: 600;
     }
 
-    /* ============================================================
-       SIDEBAR TOGGLE — clean
-       ============================================================ */
+    /* Sidebar toggle */
     [data-testid="stSidebarCollapsedControl"],
     [data-testid="collapsedControl"] {
         visibility: visible !important;
@@ -396,21 +333,14 @@ st.markdown("""
         padding: 8px !important;
         box-shadow: 0 4px 16px rgba(0,0,0,0.5) !important;
     }
-    [data-testid="stSidebarCollapsedControl"]:hover,
-    [data-testid="collapsedControl"]:hover {
-        border-color: #ff4d4d !important;
-    }
     [data-testid="stSidebarCollapsedControl"] svg,
     [data-testid="collapsedControl"] svg {
         fill: #e8eaf0 !important;
-        color: #e8eaf0 !important;
         width: 20px !important;
         height: 20px !important;
     }
 
-    /* ============================================================
-       FOOTER
-       ============================================================ */
+    /* Footer */
     .footer {
         text-align: center;
         color: #5a6478 !important;
@@ -420,68 +350,47 @@ st.markdown("""
         border-top: 1px solid #1e2433;
         margin-top: 2rem;
     }
-    .footer strong {
-        color: #8892a6 !important;
-    }
+    .footer strong { color: #8892a6 !important; }
 
-    /* ============================================================
-       DIVIDERS
-       ============================================================ */
-    hr {
-        border: none !important;
-        border-top: 1px solid #1e2433 !important;
-        margin: 1rem 0 !important;
-    }
+    hr { border: none !important; border-top: 1px solid #1e2433 !important; margin: 1rem 0 !important; }
 
     /* ============================================================
        RESPONSIVE
        ============================================================ */
-
-    /* Phones: tighter padding */
     @media (max-width: 640px) {
-        .block-container {
-            padding: 0.9rem 0.75rem 6rem 0.75rem !important;
-        }
+        .block-container { padding: 0.9rem 0.75rem 6rem 0.75rem !important; }
         .hero { padding: 0.5rem 0 1.25rem 0; }
         .hero-logo { width: 56px; height: 56px; font-size: 1.5rem; }
-        .card, .card-accent { padding: 1rem; border-radius: 14px; }
-        .stChatMessage {
-            padding: 0.75rem 0.9rem !important;
-            font-size: 0.88rem !important;
-        }
         section[data-testid="stSidebar"] {
             min-width: 90vw !important;
             max-width: 90vw !important;
+            width: 90vw !important;
+        }
+        section[data-testid="stSidebar"] > div:first-child {
+            width: 90vw !important;
         }
     }
-
-    /* Very small phones */
     @media (max-width: 380px) {
         .hero-title { font-size: 1.35rem; }
         .hero-subtitle { font-size: 0.72rem; }
         .stat-box-num { font-size: 1.2rem; }
     }
-
-    /* Tablets */
     @media (min-width: 641px) and (max-width: 1024px) {
         .block-container {
-            max-width: 720px !important;
+            max-width: 700px !important;
             margin: 0 auto !important;
             padding: 1.5rem 1.5rem 6rem 1.5rem !important;
         }
     }
-
-    /* Desktop */
     @media (min-width: 1025px) {
         .block-container {
-            max-width: 820px !important;
+            max-width: 720px !important;
             margin: 0 auto !important;
-            padding: 2rem 1.5rem 5rem 1.5rem !important;
+            padding: 3rem 2rem 6rem 2rem !important;
         }
-        .hero { padding: 1.5rem 0 2.5rem 0; }
+        .hero { padding: 1.5rem 0 3rem 0 !important; }
     }
 
-    /* Reduce motion */
     @media (prefers-reduced-motion: reduce) {
         * { transition: none !important; animation: none !important; }
     }
@@ -489,7 +398,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ============================================================
-# GROQ CLIENT
+# GROQ
 # ============================================================
 def get_groq_client():
     return Groq(api_key=st.secrets["GROQ_API_KEY"], max_retries=3, timeout=60.0)
@@ -528,9 +437,7 @@ def rate_check(ip: str):
     store = st.session_state._rate_store
     key = f"ip:{ip}"
     for window, (limit, seconds) in LIMITS.items():
-        store[f"{key}:{window}"] = [
-            t for t in store[f"{key}:{window}"] if t > now - seconds
-        ]
+        store[f"{key}:{window}"] = [t for t in store[f"{key}:{window}"] if t > now - seconds]
         if len(store[f"{key}:{window}"]) >= limit:
             return False, f"⏳ تجاوزت الحد ({limit} طلب). حاول لاحقاً."
     for window in LIMITS:
@@ -567,7 +474,7 @@ def get_total_visits():
 total_visits = get_total_visits()
 
 # ============================================================
-# SESSION STATE
+# SESSION
 # ============================================================
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -601,17 +508,13 @@ BASE_IDENTITY = "You are Houssem AI, created by Houssem Kessentini. "
 # SIDEBAR
 # ============================================================
 with st.sidebar:
-    # Brand block
     st.markdown("""
         <div style="text-align:center;padding:0.25rem 0 1rem 0;">
             <div style="
-                display:inline-flex;
-                width:48px;height:48px;
+                display:inline-flex;width:48px;height:48px;
                 background:linear-gradient(135deg,#ff4d4d,#c81e1e);
-                border-radius:14px;
-                align-items:center;justify-content:center;
-                font-size:1.3rem;
-                box-shadow:0 6px 24px rgba(255,77,77,0.35);
+                border-radius:14px;align-items:center;justify-content:center;
+                font-size:1.3rem;box-shadow:0 6px 24px rgba(255,77,77,0.35);
             ">⚡</div>
             <div style="font-size:1.05rem;font-weight:800;color:#fff;margin-top:0.5rem;">
                 Houssem AI
@@ -623,9 +526,7 @@ with st.sidebar:
     """, unsafe_allow_html=True)
 
     st.markdown("---")
-
-    # Domain
-    st.markdown("### المجال")
+    st.markdown("### 🎯 المجال")
     st.session_state.domain_choice = st.selectbox(
         "المجال",
         list(DOMAIN_MAP.keys()),
@@ -636,9 +537,7 @@ with st.sidebar:
     domain = st.session_state.domain_choice
 
     st.markdown("---")
-
-    # Usage
-    st.markdown("### الاستهلاك")
+    st.markdown("### 📊 الاستهلاك")
     try:
         usage = rate_usage(client_ip)
         limits_map = {"minute": 15, "hour": 200, "day": 1500}
@@ -652,14 +551,7 @@ with st.sidebar:
             icon = icons_map[window]
             label = labels_map[window]
             pct = (count / limit) * 100 if limit else 0
-
-            if pct < 50:
-                fill_class = "fill-ok"
-            elif pct < 85:
-                fill_class = "fill-mid"
-            else:
-                fill_class = "fill-high"
-
+            fill_class = "fill-ok" if pct < 50 else ("fill-mid" if pct < 85 else "fill-high")
             st.markdown(f"""
                 <div class="usage-row">
                     <div class="usage-row-head">
@@ -676,9 +568,7 @@ with st.sidebar:
         st.caption("—")
 
     st.markdown("---")
-
-    # Stats
-    st.markdown("### الإحصائيات")
+    st.markdown("### 📈 الإحصائيات")
     st.markdown(f"""
         <div class="stat-grid">
             <div class="stat-box">
@@ -697,9 +587,7 @@ with st.sidebar:
     """, unsafe_allow_html=True)
 
     st.markdown("---")
-
-    # Actions
-    st.markdown("### الإجراءات")
+    st.markdown("### ⚙️ الإجراءات")
 
     if st.session_state.messages:
         chat_text = "\n".join(
@@ -723,7 +611,7 @@ with st.sidebar:
     st.caption(f"🌍 `{client_ip}`")
 
 # ============================================================
-# MAIN AREA — HERO
+# MAIN
 # ============================================================
 st.markdown("""
     <div class="hero">
@@ -733,9 +621,6 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# ============================================================
-# WELCOME
-# ============================================================
 if not st.session_state.messages:
     st.markdown("""
         <div class="welcome">
@@ -748,9 +633,6 @@ if not st.session_state.messages:
         </div>
     """, unsafe_allow_html=True)
 
-# ============================================================
-# CHAT HISTORY
-# ============================================================
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
@@ -811,9 +693,6 @@ if prompt := st.chat_input("اكتب سؤالك هنا..."):
         except Exception as e:
             st.error(f"❌ خطأ تقني: {e}")
 
-# ============================================================
-# FOOTER
-# ============================================================
 st.markdown("""
     <div class="footer">
         <strong>Houssem AI</strong> — Built in Sfax, Tunisia<br>
