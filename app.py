@@ -21,6 +21,8 @@ st.markdown("""
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0&display=swap');
+    @import url('https://fonts.googleapis.com/icon?family=Material+Icons');
 
     *, *::before, *::after { box-sizing: border-box; }
     html, body {
@@ -53,8 +55,31 @@ st.markdown("""
     }
 
     /* ============================================================
-       SIDEBAR
+       KILL MATERIAL ICONS — the source of "smart_toggle" / "face"
        ============================================================ */
+    .material-symbols-rounded,
+    .material-symbols-outlined,
+    .material-icons,
+    .material-icons-round,
+    .material-icons-sharp,
+    [data-testid="stIconMaterial"] {
+        font-family: 'Material Symbols Rounded', 'Material Icons', sans-serif !important;
+        font-weight: normal !important;
+        font-style: normal !important;
+        line-height: 1 !important;
+        letter-spacing: normal !important;
+        text-transform: none !important;
+        display: inline-block !important;
+        white-space: nowrap !important;
+        word-wrap: normal !important;
+        direction: ltr !important;
+        -webkit-font-smoothing: antialiased !important;
+        text-rendering: optimizeLegibility !important;
+        -moz-osx-font-smoothing: grayscale !important;
+        font-feature-settings: 'liga' !important;
+    }
+
+    /* SIDEBAR */
     section[data-testid="stSidebar"] {
         background: #141414 !important;
         border-right: 1px solid #2a2a2a !important;
@@ -77,12 +102,8 @@ st.markdown("""
         border-bottom: 1px solid #2a2a2a;
         margin-bottom: 1.1rem;
     }
-
-    /* 🇹🇳 Tunisan flag logo */
     .sidebar-logo {
-        width: 34px;
-        height: 34px;
-        border-radius: 8px;
+        width: 34px; height: 34px; border-radius: 8px;
         background-image: url("https://upload.wikimedia.org/wikipedia/commons/c/ce/Flag_of_Tunisia.svg");
         background-size: cover;
         background-position: center;
@@ -90,9 +111,6 @@ st.markdown("""
         flex-shrink: 0;
         box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     }
-    .sidebar-logo::before,
-    .sidebar-logo::after { display: none; }
-
     .sidebar-name {
         font-size: 1rem; font-weight: 700;
         color: #fff !important; letter-spacing: -0.01em;
@@ -118,7 +136,6 @@ st.markdown("""
         min-height: 40px !important;
         font-size: 0.85rem !important;
         padding: 0.5rem 0.9rem !important;
-        transition: all 0.15s;
         text-align: right !important;
     }
     section[data-testid="stSidebar"] .stButton > button:hover {
@@ -139,10 +156,7 @@ st.markdown("""
         background: #1f1f1f !important;
         color: #ececec !important;
     }
-    ul[role="listbox"] {
-        background: #1f1f1f !important;
-        border-radius: 10px !important;
-    }
+    ul[role="listbox"] { background: #1f1f1f !important; border-radius: 10px !important; }
     li[role="option"] {
         background: #1f1f1f !important;
         color: #ececec !important;
@@ -175,7 +189,7 @@ st.markdown("""
     }
     .usage-bar-mini-fill {
         height: 100%; background: #e70013;
-        border-radius: 2px; transition: width 0.3s ease;
+        border-radius: 2px;
     }
 
     /* STATS */
@@ -191,7 +205,6 @@ st.markdown("""
     .stat-mini-num {
         font-size: 1.05rem; font-weight: 700;
         color: #fff !important; line-height: 1;
-        font-variant-numeric: tabular-nums;
     }
     .stat-mini-label {
         font-size: 0.62rem; color: #8a8a8a !important;
@@ -201,12 +214,9 @@ st.markdown("""
 
     /* HERO */
     .hero-ds { text-align: center; padding: 3rem 1rem 2rem 1rem; }
-
-    /* 🇹🇳 Tunisian flag hero */
     .hero-ds-logo {
         display: inline-block;
-        width: 88px;
-        height: 88px;
+        width: 88px; height: 88px;
         border-radius: 22px;
         background-image: url("https://upload.wikimedia.org/wikipedia/commons/c/ce/Flag_of_Tunisia.svg");
         background-size: cover;
@@ -216,8 +226,6 @@ st.markdown("""
         box-shadow: 0 12px 40px rgba(231,0,19,0.35);
         border: 2px solid rgba(255,255,255,0.08);
     }
-    .hero-ds-logo::after { display: none; }
-
     .hero-ds-title {
         font-size: clamp(1.75rem, 5vw, 2.5rem);
         font-weight: 700; color: #fff !important;
@@ -243,7 +251,6 @@ st.markdown("""
         border-radius: 14px;
         padding: 0.9rem 1rem;
         text-align: right;
-        transition: all 0.15s;
         direction: rtl;
     }
     .suggest-title {
@@ -254,7 +261,9 @@ st.markdown("""
         font-size: 0.72rem; color: #8a8a8a !important; line-height: 1.4;
     }
 
-    /* CHAT */
+    /* ============================================================
+       CHAT — HARD KILL of avatars
+       ============================================================ */
     .stChatMessage {
         background: transparent !important;
         border: none !important;
@@ -263,6 +272,37 @@ st.markdown("""
         border-bottom: 1px solid #262626 !important;
         border-radius: 0 !important;
     }
+
+    /* Kill any avatar / icon element inside chat */
+    .stChatMessage [data-testid="stChatMessageAvatar"],
+    .stChatMessage [data-testid="stIconMaterial"],
+    .stChatMessage [data-testid="chatAvatarIcon-user"],
+    .stChatMessage [data-testid="chatAvatarIcon-assistant"],
+    .stChatMessage .material-symbols-rounded,
+    .stChatMessage .material-symbols-outlined,
+    .stChatMessage .material-icons,
+    .stChatMessage > div:first-child {
+        display: none !important;
+        visibility: hidden !important;
+        width: 0 !important;
+        height: 0 !important;
+        font-size: 0 !important;
+        overflow: hidden !important;
+    }
+
+    /* Body of chat takes full width */
+    .stChatMessage > div:nth-child(2) {
+        display: block !important;
+        visibility: visible !important;
+        padding-left: 0 !important;
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+
+    .stChatMessage > div:nth-child(2) * {
+        visibility: visible !important;
+    }
+
     .stChatMessage p {
         color: #ececec !important;
         font-size: clamp(0.9rem, 2.4vw, 1rem) !important;
@@ -289,14 +329,13 @@ st.markdown("""
         background: linear-gradient(180deg, rgba(26,26,26,0) 0%, #1a1a1a 40%) !important;
         border: none !important;
         box-shadow: none !important;
-        padding: 1.5rem 1rem 1.5rem 1rem !important;
+        padding: 1.5rem 1rem !important;
     }
     div[data-testid="stChatInput"] {
         background: #262626 !important;
         border: 1px solid #3a3a3a !important;
         border-radius: 24px !important;
         box-shadow: 0 4px 30px rgba(0,0,0,0.4) !important;
-        transition: all 0.2s;
         max-width: 820px !important;
         margin: 0 auto !important;
         display: flex !important;
@@ -328,10 +367,6 @@ st.markdown("""
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        transition: background 0.15s;
-    }
-    div[data-testid="stChatInput"] button:hover {
-        background: #c00010 !important;
     }
     div[data-testid="stChatInput"] button svg {
         fill: #fff !important;
@@ -395,10 +430,6 @@ st.markdown("""
         section[data-testid="stSidebar"] > div:first-child {
             width: 88vw !important;
         }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-        * { transition: none !important; animation: none !important; }
     }
     </style>
 """, unsafe_allow_html=True)
@@ -621,10 +652,10 @@ if not st.session_state.messages:
     """, unsafe_allow_html=True)
 
 # ============================================================
-# CHAT HISTORY
+# CHAT — pass empty avatar to disable default icons
 # ============================================================
 for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
+    with st.chat_message(message["role"], avatar=" "):
         st.markdown(message["content"])
 
 if st.session_state.messages:
@@ -648,10 +679,10 @@ if prompt := st.chat_input("اكتب رسالتك هنا..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     st.session_state.conversation_count += 1
 
-    with st.chat_message("user"):
+    with st.chat_message("user", avatar=" "):
         st.markdown(prompt)
 
-    with st.chat_message("assistant"):
+    with st.chat_message("assistant", avatar=" "):
         try:
             system_instruction = BASE_IDENTITY + DOMAIN_MAP[domain]
             history = st.session_state.messages[-20:]
