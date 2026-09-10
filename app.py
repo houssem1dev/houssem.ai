@@ -49,18 +49,14 @@ h1,h2,h3,h4,h5,h6,p,span,div,label,li,a {
     font-family: 'Cairo', sans-serif !important;
 }
 
+/* Hide native toggle buttons */
 [data-testid="stSidebarCollapsedControl"],
 [data-testid="collapsedControl"],
 [data-testid="stSidebarCollapseButton"] {
     display: none !important;
 }
 
-/* ============================================================
-   🔥 BIG MENU BAR — top of page, full width, impossible to miss
-   ============================================================ */
-div[data-testid="stVerticalBlock"] > div:has(button[key="menu_bar_btn"]) {
-    margin-bottom: 12px !important;
-}
+/* Big menu button */
 button[key="menu_bar_btn"] {
     background: linear-gradient(90deg, #e70013 0%, #b30010 100%) !important;
     color: #fff !important;
@@ -73,14 +69,12 @@ button[key="menu_bar_btn"] {
     padding: 12px 16px !important;
     box-shadow: 0 4px 20px rgba(231,0,19,0.5) !important;
     text-align: center !important;
-    letter-spacing: 0.5px !important;
     line-height: 1.4 !important;
+    margin-bottom: 12px !important;
 }
 button[key="menu_bar_btn"]:hover,
 button[key="menu_bar_btn"]:active {
     background: linear-gradient(90deg, #ff1a2e 0%, #c00010 100%) !important;
-    transform: scale(1.01);
-    box-shadow: 0 6px 28px rgba(231,0,19,0.7) !important;
 }
 
 section[data-testid="stSidebar"] {
@@ -385,7 +379,6 @@ total_visits = get_total_visits()
 if "messages" not in st.session_state: st.session_state.messages = []
 if "conversation_count" not in st.session_state: st.session_state.conversation_count = 0
 if "domain_choice" not in st.session_state: st.session_state.domain_choice = ""
-if "sidebar_open" not in st.session_state: st.session_state.sidebar_open = True
 
 MY_NAME_AR = "حسام القسنطيني"
 MY_NAME_EN = "Houssem Kessentini"
@@ -412,15 +405,115 @@ BASE_IDENTITY = (
 )
 
 # ============================================================
-# 🔥 BIG MENU BUTTON — full width bar at the top
+# 🔥 SIDEBAR — ALWAYS rendered, but we control visibility with CSS
 # ============================================================
-if st.session_state.sidebar_open:
+if "sidebar_visible" not in st.session_state:
+    st.session_state.sidebar_visible = True
+
+with st.sidebar:
+    brand_html = (
+        '<div class="sidebar-brand">'
+        '<div class="sidebar-logo"></div>'
+        '<div class="sidebar-name">' + MY_NAME_AR + '</div>'
+        '</div>'
+    )
+    st.markdown(brand_html, unsafe_allow_html=True)
+
+    st.markdown("### 🎯 المجال")
+    _domain_options = list(DOMAIN_MAP.keys())
+    if st.session_state.domain_choice not in _domain_options:
+        st.session_state.domain_choice = _domain_options[0]
+    st.session_state.domain_choice = st.selectbox(
+        "المجال", _domain_options,
+        index=_domain_options.index(st.session_state.domain_choice),
+        key="domain_selector", label_visibility="collapsed",
+    )
+    domain = st.session_state.domain_choice
+
+    st.markdown("### 📊 الاستهلاك")
+    try:
+        usage = rate_usage(client_ip)
+        limits_map = {"minute": 15, "hour": 200, "day": 1500}
+        labels_map = {"minute": "دقيقة", "hour": "ساعة", "day": "يوم"}
+        st.markdown('<div class="usage-mini">', unsafe_allow_html=True)
+        for window in ["minute", "hour", "day"]:
+            c = usage.get(window, 0)
+            lim = limits_map[window]
+            lbl = labels_map[window]
+            pct = (c / lim) * 100 if lim else 0
+            st.markdown(
+                '<div class="usage-item-mini">'
+                '<div class="usage-head-mini">'
+                '<span>' + lbl + '</span>'
+                '<span>' + str(c) + ' / ' + str(lim) + '</span>'
+                '</div>'
+                '<div class="usage-bar-mini">'
+                '<div class="usage-bar-mini-fill" style="width:' + str(max(pct, 1)) + '%;"></div>'
+                '</div></div>',
+                unsafe_allow_html=True
+            )
+        st.markdown('</div>', unsafe_allow_html=True)
+    except Exception:
+        pass
+
+    st.markdown("### 📈 الإحصائيات")
+    st.markdown(
+        '<div class="stats-mini">'
+        '<div class="stat-mini">'
+        '<div class="stat-mini-num">' + str(st.session_state.conversation_count) + '</div>'
+        '<div class="stat-mini-label">رسائل</div>'
+        '</div>'
+        '<div class="stat-mini">'
+        '<div class="stat-mini-num">' + str(total_visits) + '</div>'
+        '<div class="stat-mini-label">زوار</div>'
+        '</div></div>',
+        unsafe_allow_html=True
+    )
+
+    st.markdown("### ⚙️ الإجراءات")
+    if st.session_state.messages:
+        chat_text = "\n".join(
+            ("👤: " if m["role"] == "user" else "🤖: ") + m["content"]
+            for m in st.session_state.messages
+        )
+        st.download_button(
+            "📥 تصدير المحادثة",
+            data=chat_text,
+            file_name="houssem_ai_chat_" + datetime.now().strftime("%Y%m%d_%H%M") + ".txt",
+            mime="text/plain", use_container_width=True,
+        )
+    if st.button("🗑 محادثة جديدة", use_container_width=True):
+        st.session_state.messages = []
+        st.session_state.conversation_count = 0
+        st.rerun()
+
+# ============================================================
+# HIDE/SHOW SIDEBAR VIA CSS BASED ON STATE
+# ============================================================
+if not st.session_state.sidebar_visible:
+    hide_css = """
+    <style>
+    section[data-testid="stSidebar"] {
+        display: none !important;
+        visibility: hidden !important;
+        width: 0 !important;
+        min-width: 0 !important;
+    }
+    section.main { margin-left: 0 !important; }
+    </style>
+    """
+    st.markdown(hide_css, unsafe_allow_html=True)
+
+# ============================================================
+# 🔥 BIG MENU BUTTON — always visible at top
+# ============================================================
+if st.session_state.sidebar_visible:
     menu_label = "✕  إغلاق القائمة"
 else:
     menu_label = "☰  فتح القائمة"
 
 if st.button(menu_label, key="menu_bar_btn", use_container_width=True):
-    st.session_state.sidebar_open = not st.session_state.sidebar_open
+    st.session_state.sidebar_visible = not st.session_state.sidebar_visible
     st.rerun()
 
 # ============================================================
@@ -438,89 +531,6 @@ top_bar_html = (
     '</span></div></div>'
 )
 st.markdown(top_bar_html, unsafe_allow_html=True)
-
-# ============================================================
-# SIDEBAR
-# ============================================================
-if st.session_state.sidebar_open:
-    with st.sidebar:
-        brand_html = (
-            '<div class="sidebar-brand">'
-            '<div class="sidebar-logo"></div>'
-            '<div class="sidebar-name">' + MY_NAME_AR + '</div>'
-            '</div>'
-        )
-        st.markdown(brand_html, unsafe_allow_html=True)
-
-        st.markdown("### 🎯 المجال")
-        _domain_options = list(DOMAIN_MAP.keys())
-        if st.session_state.domain_choice not in _domain_options:
-            st.session_state.domain_choice = _domain_options[0]
-        st.session_state.domain_choice = st.selectbox(
-            "المجال", _domain_options,
-            index=_domain_options.index(st.session_state.domain_choice),
-            key="domain_selector", label_visibility="collapsed",
-        )
-        domain = st.session_state.domain_choice
-
-        st.markdown("### 📊 الاستهلاك")
-        try:
-            usage = rate_usage(client_ip)
-            limits_map = {"minute": 15, "hour": 200, "day": 1500}
-            labels_map = {"minute": "دقيقة", "hour": "ساعة", "day": "يوم"}
-            st.markdown('<div class="usage-mini">', unsafe_allow_html=True)
-            for window in ["minute", "hour", "day"]:
-                c = usage.get(window, 0)
-                lim = limits_map[window]
-                lbl = labels_map[window]
-                pct = (c / lim) * 100 if lim else 0
-                st.markdown(
-                    '<div class="usage-item-mini">'
-                    '<div class="usage-head-mini">'
-                    '<span>' + lbl + '</span>'
-                    '<span>' + str(c) + ' / ' + str(lim) + '</span>'
-                    '</div>'
-                    '<div class="usage-bar-mini">'
-                    '<div class="usage-bar-mini-fill" style="width:' + str(max(pct, 1)) + '%;"></div>'
-                    '</div></div>',
-                    unsafe_allow_html=True
-                )
-            st.markdown('</div>', unsafe_allow_html=True)
-        except Exception:
-            pass
-
-        st.markdown("### 📈 الإحصائيات")
-        st.markdown(
-            '<div class="stats-mini">'
-            '<div class="stat-mini">'
-            '<div class="stat-mini-num">' + str(st.session_state.conversation_count) + '</div>'
-            '<div class="stat-mini-label">رسائل</div>'
-            '</div>'
-            '<div class="stat-mini">'
-            '<div class="stat-mini-num">' + str(total_visits) + '</div>'
-            '<div class="stat-mini-label">زوار</div>'
-            '</div></div>',
-            unsafe_allow_html=True
-        )
-
-        st.markdown("### ⚙️ الإجراءات")
-        if st.session_state.messages:
-            chat_text = "\n".join(
-                ("👤: " if m["role"] == "user" else "🤖: ") + m["content"]
-                for m in st.session_state.messages
-            )
-            st.download_button(
-                "📥 تصدير المحادثة",
-                data=chat_text,
-                file_name="houssem_ai_chat_" + datetime.now().strftime("%Y%m%d_%H%M") + ".txt",
-                mime="text/plain", use_container_width=True,
-            )
-        if st.button("🗑 محادثة جديدة", use_container_width=True):
-            st.session_state.messages = []
-            st.session_state.conversation_count = 0
-            st.rerun()
-else:
-    domain = st.session_state.domain_choice or list(DOMAIN_MAP.keys())[0]
 
 # ============================================================
 # HERO
