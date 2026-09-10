@@ -6,6 +6,9 @@ import streamlit as st
 import requests
 from groq import Groq
 
+# ============================================================
+# PAGE CONFIG
+# ============================================================
 st.set_page_config(
     page_title="حسام القسنطيني — أول ذكاء اصطناعي تونسي",
     page_icon="⚡",
@@ -18,11 +21,11 @@ st.markdown("""
     <meta name="theme-color" content="#1a1a1a">
 """, unsafe_allow_html=True)
 
+# ============================================================
+# CSS
+# ============================================================
 st.markdown("""
     <style>
-    /* ============================================================
-       FONTS — Cairo + Material Symbols
-       ============================================================ */
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap');
     @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0&display=swap');
     @import url('https://fonts.googleapis.com/icon?family=Material+Icons');
@@ -37,7 +40,6 @@ st.markdown("""
         overflow-x: hidden;
     }
 
-    /* Hide chrome */
     #MainMenu, footer { visibility: hidden; }
     header[data-testid="stHeader"] { display: none !important; }
     div[data-testid="stToolbar"] { display: none !important; }
@@ -58,14 +60,11 @@ st.markdown("""
         font-family: 'Cairo', sans-serif !important;
     }
 
-    /* ============================================================
-       MATERIAL SYMBOL FIX — prevents "keyboard_double_arrow_left" text
-       ============================================================ */
+    /* Material icon font fix */
     [data-testid="stIconMaterial"],
     .material-symbols-rounded,
     .material-symbols-outlined,
-    .material-icons,
-    span[class*="material-symbols"] {
+    .material-icons {
         font-family: 'Material Symbols Rounded', 'Material Icons', sans-serif !important;
         font-weight: normal !important;
         font-style: normal !important;
@@ -78,18 +77,15 @@ st.markdown("""
         -webkit-font-smoothing: antialiased !important;
     }
 
-    /* Hide the sidebar close button (tap outside to close) */
+    /* Hide sidebar close button */
     [data-testid="stSidebarCollapseButton"],
     [data-testid="stSidebarCollapseButton"] *,
-    button[kind="header"][aria-label*="Close"],
     button[aria-label="Close sidebar"] {
         display: none !important;
         visibility: hidden !important;
     }
 
-    /* ============================================================
-       MOBILE SIDEBAR OPEN BUTTON — big, red, always visible
-       ============================================================ */
+    /* Mobile sidebar toggle */
     [data-testid="stSidebarCollapsedControl"],
     [data-testid="collapsedControl"] {
         visibility: visible !important;
@@ -110,13 +106,8 @@ st.markdown("""
     }
     [data-testid="stSidebarCollapsedControl"] svg,
     [data-testid="collapsedControl"] svg {
-        fill: #ffffff !important;
-        color: #ffffff !important;
-        width: 26px !important;
-        height: 26px !important;
-        display: block !important;
+        display: none !important;
     }
-    /* If SVG fails, show fallback character */
     [data-testid="stSidebarCollapsedControl"]::before,
     [data-testid="collapsedControl"]::before {
         content: "☰" !important;
@@ -126,15 +117,11 @@ st.markdown("""
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-    }
-    [data-testid="stSidebarCollapsedControl"] svg,
-    [data-testid="collapsedControl"] svg {
-        display: none !important;
+        width: 100% !important;
+        height: 100% !important;
     }
 
-    /* ============================================================
-       SIDEBAR
-       ============================================================ */
+    /* SIDEBAR */
     section[data-testid="stSidebar"] {
         background: #141414 !important;
         border-right: 1px solid #2a2a2a !important;
@@ -198,9 +185,7 @@ st.markdown("""
         border-color: #3a3a3a !important;
     }
 
-    /* ============================================================
-       DROPDOWN — FORCE dark background (fixes white dropdown on mobile)
-       ============================================================ */
+    /* Dropdown — force dark */
     section[data-testid="stSidebar"] div[data-baseweb="select"],
     section[data-testid="stSidebar"] div[data-baseweb="select"] > div,
     section[data-testid="stSidebar"] div[data-baseweb="select"] > div > div,
@@ -227,11 +212,9 @@ st.markdown("""
         color: #8a8a8a !important;
     }
 
-    /* Dropdown list (open) */
     div[data-baseweb="popover"] *,
     div[data-baseweb="popover"] ul,
     div[data-baseweb="popover"] li,
-    div[data-baseweb="popover"] div,
     ul[role="listbox"],
     li[role="option"] {
         background: #1f1f1f !important;
@@ -247,7 +230,6 @@ st.markdown("""
     li[role="option"]:hover,
     li[role="option"][aria-selected="true"] {
         background: #2a2a2a !important;
-        background-color: #2a2a2a !important;
     }
 
     /* USAGE */
@@ -319,7 +301,7 @@ st.markdown("""
         margin: 0 auto; max-width: 480px;
     }
 
-    /* SUGGESTIONS — RTL fixed for mobile */
+    /* SUGGESTIONS */
     .suggest-grid {
         display: grid !important;
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
@@ -334,14 +316,6 @@ st.markdown("""
         padding: 0.9rem 1rem !important;
         direction: rtl !important;
         text-align: right !important;
-        word-break: normal !important;
-        overflow-wrap: break-word !important;
-        white-space: normal !important;
-    }
-    .suggest-card * {
-        white-space: normal !important;
-        word-break: normal !important;
-        overflow-wrap: break-word !important;
     }
     .suggest-title {
         font-size: 0.88rem !important;
@@ -469,7 +443,6 @@ st.markdown("""
         margin: 1rem 0 !important;
     }
 
-    /* RESPONSIVE */
     @media (max-width: 768px) {
         section[data-testid="stSidebar"] {
             min-width: 88vw !important;
@@ -481,7 +454,6 @@ st.markdown("""
             grid-template-columns: 1fr !important;
         }
     }
-
     @media (max-width: 640px) {
         .block-container { padding: 0.75rem 0.9rem 6rem 0.9rem !important; }
         .hero-ds { padding: 2rem 0.5rem 1.5rem 0.5rem; }
@@ -489,7 +461,6 @@ st.markdown("""
         .hero-ds-title { font-size: 1.6rem; }
         .hero-ds-sub { font-size: 0.85rem; }
     }
-
     @media (prefers-reduced-motion: reduce) {
         * { transition: none !important; animation: none !important; }
     }
@@ -637,27 +608,162 @@ with st.sidebar:
             limit = limits_map[window]
             label = labels_map[window]
             pct = (count / limit) * 100 if limit else 0
-            st.markdown(f"""
-                <div class="usage-item-mini">
-                    <div class="usage-head-mini">
-                        <span>{label}</span>
-                        <span>{count} / {limit}</span>
-                    </div>
-                    <div class="usage-bar-mini">
-                        <div class="usage-bar-mini-fill" style="width:{max(pct,1)}%;"></div>
-                    </div>
-                </div>
-            """, unsafe_allow_html=True)
+            html = (
+                '<div class="usage-item-mini">'
+                '<div class="usage-head-mini">'
+                f'<span>{label}</span>'
+                f'<span>{count} / {limit}</span>'
+                '</div>'
+                '<div class="usage-bar-mini">'
+                f'<div class="usage-bar-mini-fill" style="width:{max(pct,1)}%;"></div>'
+                '</div>'
+                '</div>'
+            )
+            st.markdown(html, unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
     except Exception:
         pass
 
     st.markdown("### 📈 الإحصائيات")
-    st.markdown(f"""
-        <div class="stats-mini">
-            <div class="stat-mini">
-                <div class="stat-mini-num">{st.session_state.conversation_count}</div>
-                <div class="stat-mini-label">رسائل</div>
+    stats_html = (
+        '<div class="stats-mini">'
+        '<div class="stat-mini">'
+        f'<div class="stat-mini-num">{st.session_state.conversation_count}</div>'
+        '<div class="stat-mini-label">رسائل</div>'
+        '</div>'
+        '<div class="stat-mini">'
+        f'<div class="stat-mini-num">{total_visits}</div>'
+        '<div class="stat-mini-label">زوار</div>'
+        '</div>'
+        '</div>'
+    )
+    st.markdown(stats_html, unsafe_allow_html=True)
+
+    st.markdown("### ⚙️ الإجراءات")
+
+    if st.session_state.messages:
+        chat_text = "\n".join(
+            f"{'👤' if m['role'] == 'user' else '🤖'}: {m['content']}"
+            for m in st.session_state.messages
+        )
+        st.download_button(
+            "📥 تصدير المحادثة",
+            data=chat_text,
+            file_name=f"houssem_ai_chat_{datetime.now().strftime('%Y%m%d_%H%M')}.txt",
+            mime="text/plain",
+            use_container_width=True,
+        )
+
+    if st.button("🗑 محادثة جديدة", use_container_width=True):
+        st.session_state.messages = []
+        st.session_state.conversation_count = 0
+        st.rerun()
+
+# ============================================================
+# MAIN — HERO
+# ============================================================
+if not st.session_state.messages:
+    st.markdown("""
+        <div class="hero-ds">
+            <div class="hero-ds-logo"></div>
+            <h1 class="hero-ds-title">كيف يمكنني مساعدتك؟</h1>
+            <p class="hero-ds-sub">حسام القسنطيني — أول ذكاء اصطناعي تونسي متقدم</p>
+        </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("""
+        <div class="suggest-grid">
+            <div class="suggest-card">
+                <div class="suggest-title">🔐 اختراق أخلاقي</div>
+                <div class="suggest-desc">تحليل الثغرات والأمن السيبراني</div>
             </div>
-            <div class="stat-mini">
-                <div class
+            <div class="suggest-card">
+                <div class="suggest-title">💻 كود احترافي</div>
+                <div class="suggest-desc">تطوير ويب وتطبيقات</div>
+            </div>
+            <div class="suggest-card">
+                <div class="suggest-title">📈 تحليل الأسواق</div>
+                <div class="suggest-desc">استراتيجيات التداول</div>
+            </div>
+            <div class="suggest-card">
+                <div class="suggest-title">📰 تحليل الأخبار</div>
+                <div class="suggest-desc">أخبار التقنية والذكاء الاصطناعي</div>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+
+# ============================================================
+# CHAT
+# ============================================================
+for message in st.session_state.messages:
+    avatar = "⚡" if message["role"] == "assistant" else "👤"
+    with st.chat_message(message["role"], avatar=avatar):
+        st.markdown(message["content"])
+
+# ============================================================
+# FOOTER
+# ============================================================
+if st.session_state.messages:
+    st.markdown("""
+        <div class="footer-ds">
+            <strong>حسام القسنطيني</strong> · أول ذكاء اصطناعي تونسي<br>
+            من صفاقس، تونس 🇹🇳<br>
+            Powered by Groq AI
+        </div>
+    """, unsafe_allow_html=True)
+
+# ============================================================
+# INPUT
+# ============================================================
+if prompt := st.chat_input("اكتب رسالتك هنا..."):
+
+    allowed, reason = rate_check(client_ip)
+    if not allowed:
+        st.warning(reason)
+        st.stop()
+
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    st.session_state.conversation_count += 1
+
+    with st.chat_message("user", avatar="👤"):
+        st.markdown(prompt)
+
+    with st.chat_message("assistant", avatar="⚡"):
+        try:
+            system_instruction = BASE_IDENTITY + DOMAIN_MAP[domain]
+            history = st.session_state.messages[-20:]
+            api_messages = [{"role": "system", "content": system_instruction}]
+            api_messages.extend(
+                {"role": m["role"], "content": m["content"]} for m in history
+            )
+
+            stream = client.chat.completions.create(
+                model="openai/gpt-oss-20b",
+                messages=api_messages,
+                temperature=0.4,
+                max_tokens=2048,
+                stream=True,
+            )
+
+            full_response = ""
+            placeholder = st.empty()
+            buffer = []
+
+            for chunk in stream:
+                if chunk.choices and chunk.choices[0].delta.content:
+                    buffer.append(chunk.choices[0].delta.content)
+                    if len(buffer) >= 5:
+                        full_response += "".join(buffer)
+                        buffer.clear()
+                        placeholder.markdown(full_response + "▌")
+
+            if buffer:
+                full_response += "".join(buffer)
+            placeholder.markdown(full_response)
+
+            st.session_state.messages.append(
+                {"role": "assistant", "content": full_response}
+            )
+
+        except Exception as e:
+            st.error(f"❌ خطأ تقني: {e}")
