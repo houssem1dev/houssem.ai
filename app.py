@@ -16,9 +16,6 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# ============================================================
-# META
-# ============================================================
 st.markdown("""
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#1a1a1a">
@@ -385,9 +382,7 @@ st.markdown("""
         margin: 1rem 0 !important;
     }
 
-    /* ============================================================
-       🔧 FIX: Pin the ☰ button to top-left corner
-       ============================================================ */
+    /* Toggle button pinned to top-left */
     div[data-testid="stVerticalBlock"] > div:has(button[key="sidebar_toggle_btn"]) {
         position: fixed !important;
         top: 16px !important;
@@ -529,7 +524,7 @@ if "sidebar_open" not in st.session_state:
     st.session_state.sidebar_open = True
 
 # ============================================================
-# 🎯 YOUR NAME
+# YOUR NAME
 # ============================================================
 MY_NAME_AR = "حسام القسنطيني"
 MY_NAME_EN = "Houssem Kessentini"
@@ -545,13 +540,10 @@ DOMAIN_MAP = {
     "📰 التحليل الاستراتيجي": "You are a Tech Intelligence Analyst.",
 }
 
-# ============================================================
-# AI IDENTITY — Always introduce حسام القسنطيني
-# ============================================================
 BASE_IDENTITY = (
     "You are Houssem AI (حسام الذكاء الاصطناعي), "
     f"created by {MY_NAME_EN} ({MY_NAME_AR}) from Sfax, Tunisia. "
-    "CRITICAL RULES — Follow at all times:\n"
+    "CRITICAL RULES:\n"
     "1. If the user greets you in ANY language (hi, hello, hey, bonjour, "
     "salut, مرحبا, أهلا, السلام عليكم), your response MUST begin by introducing "
     f"your creator '{MY_NAME_AR}' and mention that you are "
@@ -566,14 +558,14 @@ BASE_IDENTITY = (
 )
 
 # ============================================================
-# 🔧 SIDEBAR TOGGLE BUTTON (top-left, fixed position)
+# SIDEBAR TOGGLE BUTTON (top-left, fixed position)
 # ============================================================
 if st.button("☰", key="sidebar_toggle_btn", help="فتح / إغلاق القائمة"):
     st.session_state.sidebar_open = not st.session_state.sidebar_open
     st.rerun()
 
 # ============================================================
-# 🔧 TOP BAR — your name in the top-right of the interface
+# TOP BAR — your name in the top-right of the interface
 # ============================================================
 st.markdown(f"""
     <div style="
@@ -716,4 +708,4 @@ if not st.session_state.messages:
                 <div class="suggest-desc">تحليل الثغرات والأمن السيبراني</div>
             </div>
             <div class="suggest-card">
-                <div class
+                <div class="suggest-title">💻
