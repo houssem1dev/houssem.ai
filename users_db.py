@@ -1,46 +1,93 @@
 """
-Houssem AI - Simple JSON-based user storage.
-For production, swap this for SQLite/Postgres.
+Houssem AI - SQLite user storage.
+Single file database: users.db
 """
 
-import json
+import sqlite3
 import os
-from typing import Optional, Dict
+from typing import Optional
 
-USERS_FILE = "users.json"
-
-
-def _load() -> Dict[str, dict]:
-    if not os.path.exists(USERS_FILE):
-        return {}
-    try:
-        with open(USERS_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:
-        return {}
+DB_FILE = "users.db"
 
 
-def _save(data: Dict[str, dict]) -> None:
-    with open(USERS_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+def _get_conn() -> sqlite3.Connection:
+    """Open (or create) the SQLite database."""
+    conn = sqlite3.connect(DB_FILE, check_same_thread=False)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+def _init_db() -> None:
+    """Create the users table if it doesn't exist."""
+    with _get_conn() as conn:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT UNIQUE NOT NULL COLLATE NOCASE,
+                password_hash TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        conn.commit()
+
+
+# Initialize on import
+_init_db()
 
 
 def user_exists(username: str) -> bool:
-    return username.lower() in {u.lower() for u in _load().keys()}
+    with _get_conn() as conn:
+        cur = conn.execute(
+            "SELECT 1 FROM users WHERE username = ? COLLATE NOCASE",
+            (username.strip(),),
+        )
+        return cur.fetchone() is not None
 
 
 def create_user(username: str, password_hash: str) -> bool:
+    username = username.strip()
     if user_exists(username):
         return False
-    data = _load()
-    data[username] = {"password_hash": password_hash}
-    _save(data)
-    return True
+    try:
+        with _get_conn() as conn:
+            conn.execute(
+                "INSERT INTO users (username, password_hash) VALUES (?, ?)",
+                (username, password_hash),
+            )
+            conn.commit()
+        return True
+    except sqlite3.IntegrityError:
+        return False
+    except Exception:
+        return False
 
 
 def get_user(username: str) -> Optional[dict]:
-    data = _load()
-    for stored_name, info in data.items():
-        if stored_name.lower() == username.lower():
-            return {"username": stored_name, **info}
-    return None
+    with _get_conn() as conn:
+        cur = conn.execute(
+            "SELECT username, password_hash, created_at FROM users WHERE username = ? COLLATE NOCASE",
+            (username.strip(),),
+        )
+        row = cur.fetchone()
+        if not row:
+            return None
+        return {
+            "username": row["username"],
+            "password_hash": row["password_hash"],
+            "created_at": row["created_at"],
+        }
+
+
+def list_users() -> list:
+    """Return all users (for admin panel)."""
+    with _get_conn() as conn:
+        cur = conn.execute(
+            "SELECT username, created_at FROM users ORDER BY created_at DESC"
+        )
+        return [dict(r) for r in cur.fetchall()]
+
+
+def count_users() -> int:
+    with _get_conn() as conn:
+        cur = conn.execute("SELECT COUNT(*) as c FROM users")
+        return cur.fetchone()["c"]
