@@ -59,13 +59,10 @@ h1,h2,h3,h4,h5,h6,p,span,div,label,li,a {
     font-family: 'Cairo', sans-serif !important;
 }
 
+/* Hide Streamlit's native toggle (we use our own) */
 [data-testid="stSidebarCollapsedControl"],
-[data-testid="collapsedControl"],
-[data-testid="stSidebarCollapseButton"],
-button[aria-label*="sidebar"],
-button[aria-label*="Sidebar"] {
+[data-testid="collapsedControl"] {
     display: none !important;
-    visibility: hidden !important;
 }
 
 section[data-testid="stSidebar"] {
@@ -381,25 +378,29 @@ hr {
     margin: 1rem 0 !important;
 }
 
-/* Top bar layout */
-.topbar-left .stButton > button {
+/* Floating toggle button — bottom-left, always visible */
+.floating-toggle button {
+    position: fixed !important;
+    bottom: 90px !important;
+    left: 16px !important;
+    z-index: 2147483647 !important;
     background: linear-gradient(135deg, #e70013, #b30010) !important;
     color: #fff !important;
-    border: 2px solid rgba(255,255,255,0.25) !important;
-    border-radius: 12px !important;
-    width: 48px !important;
-    height: 48px !important;
-    min-width: 48px !important;
-    min-height: 48px !important;
-    font-size: 22px !important;
+    border: 2px solid rgba(255,255,255,0.3) !important;
+    border-radius: 50% !important;
+    width: 56px !important;
+    height: 56px !important;
+    min-width: 56px !important;
+    min-height: 56px !important;
+    font-size: 24px !important;
     font-weight: 700 !important;
     padding: 0 !important;
-    box-shadow: 0 6px 20px rgba(231,0,19,0.5) !important;
     line-height: 1 !important;
+    box-shadow: 0 6px 24px rgba(231,0,19,0.7) !important;
 }
-.topbar-left .stButton > button:hover {
-    transform: scale(1.06);
-    box-shadow: 0 8px 24px rgba(231,0,19,0.8) !important;
+.floating-toggle button:hover {
+    transform: scale(1.08);
+    box-shadow: 0 8px 28px rgba(231,0,19,0.9) !important;
 }
 
 @media (max-width: 768px) {
@@ -414,7 +415,7 @@ hr {
     }
 }
 @media (max-width: 640px) {
-    .block-container { padding: 0.75rem 0.9rem 6rem 0.9rem !important; }
+    .block-container { padding: 0.75rem 0.9rem 8rem 0.9rem !important; }
     .hero-ds { padding: 2rem 0.5rem 1.5rem 0.5rem; }
     .hero-ds-logo { width: 72px; height: 72px; }
     .hero-ds-title { font-size: 1.6rem; }
@@ -549,31 +550,30 @@ BASE_IDENTITY = (
 )
 
 # ============================================================
-# TOP BAR — Inline toggle button + your name (works on ALL phones)
+# FLOATING TOGGLE BUTTON — bottom-left, works on all phones
 # ============================================================
-st.markdown('<div class="topbar-left">', unsafe_allow_html=True)
-nav_left, nav_right = st.columns([1, 5])
-
-with nav_left:
-    if st.button("☰", key="sidebar_toggle_btn"):
-        st.session_state.sidebar_open = not st.session_state.sidebar_open
-        st.rerun()
-
-with nav_right:
-    pill_html = (
-        '<div style="display:flex;justify-content:flex-end;align-items:center;'
-        'height:48px;padding-top:4px;">'
-        '<div style="display:inline-flex;align-items:center;gap:8px;'
-        'background:rgba(231,0,19,0.12);border:1px solid rgba(231,0,19,0.35);'
-        'border-radius:20px;padding:6px 14px;">'
-        '<img src="https://upload.wikimedia.org/wikipedia/commons/c/ce/Flag_of_Tunisia.svg" '
-        'style="width:18px;height:18px;border-radius:50%;" />'
-        '<span style="font-size:0.85rem;font-weight:700;color:#ececec;">'
-        + MY_NAME_AR +
-        '</span></div></div>'
-    )
-    st.markdown(pill_html, unsafe_allow_html=True)
+st.markdown('<div class="floating-toggle">', unsafe_allow_html=True)
+if st.button("☰", key="sidebar_toggle_btn", help="فتح / إغلاق القائمة"):
+    st.session_state.sidebar_open = not st.session_state.sidebar_open
+    st.rerun()
 st.markdown('</div>', unsafe_allow_html=True)
+
+# ============================================================
+# TOP BAR — your name in the top-right
+# ============================================================
+top_bar_html = (
+    '<div style="display:flex;align-items:center;justify-content:flex-end;'
+    'padding:4px 12px 12px 12px;margin-bottom:8px;min-height:40px;">'
+    '<div style="display:flex;align-items:center;gap:8px;'
+    'background:rgba(231,0,19,0.12);border:1px solid rgba(231,0,19,0.35);'
+    'border-radius:20px;padding:5px 14px;">'
+    '<img src="https://upload.wikimedia.org/wikipedia/commons/c/ce/Flag_of_Tunisia.svg" '
+    'style="width:18px;height:18px;border-radius:50%;" />'
+    '<span style="font-size:0.85rem;font-weight:700;color:#ececec;">'
+    + MY_NAME_AR +
+    '</span></div></div>'
+)
+st.markdown(top_bar_html, unsafe_allow_html=True)
 
 # ============================================================
 # SIDEBAR
