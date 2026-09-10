@@ -261,7 +261,7 @@ DOMAIN_MAP = {
 BASE_IDENTITY = "You are Houssem AI, created by Houssem Kessentini. "
 
 # ============================================================
-# SIDEBAR (always visible — controlled by real Streamlit)
+# SIDEBAR
 # ============================================================
 with st.sidebar:
     st.markdown(f"## 👤 {username}")
@@ -332,7 +332,7 @@ with st.sidebar:
         st.session_state.conversation_count = 0
         st.rerun()
 
-    if st.button("🚪 تسجيل الخروج", use_container_width=True):
+    if st.button("🚪 تسجيل الخروج", use_container_width=True, key="logout_sidebar"):
         logout()
 
     ADMIN_USERS = ["houssem", "zaineb"]
@@ -346,14 +346,11 @@ with st.sidebar:
             except Exception as e:
                 st.caption(f"Admin data unavailable: {e}")
 
-    st.markdown("---")
-    st.markdown("### 📚 المساعدة")
-    st.caption("اختر مجالاً من الأعلى ثم اكتب سؤالك.")
+# ============================================================
+# TOP BAR — user info + backup logout
+# ============================================================
+top_left, top_center, top_right = st.columns([3, 5, 2])
 
-# ============================================================
-# TOP BAR — Custom Menu button (works on cloud too)
-# ============================================================
-top_left, top_center, top_right = st.columns([2, 6, 2])
 with top_left:
     st.markdown(f"""
         <div style="
@@ -364,12 +361,13 @@ with top_left:
             font-size: 0.85rem;
             color: #fff !important;
         ">
-            👤 <b>{username}</b><br>
-            <span style="font-size:0.7rem;opacity:0.8;">
-                {domain.split()[0]} {domain.split()[1] if len(domain.split())>1 else ''}
-            </span>
+            👤 <b>{username}</b>
         </div>
     """, unsafe_allow_html=True)
+
+with top_right:
+    if st.button("🚪 خروج", key="logout_top", use_container_width=True):
+        logout()
 
 # ============================================================
 # HEADER
@@ -391,9 +389,6 @@ if not st.session_state.messages:
                 مرحباً {username}
             </div>
             <div>اكتب سؤالك في الأسفل وابدأ التحليل الذكي</div>
-            <div style="margin-top:12px;font-size:0.85rem;color:#7f8c8d;">
-                استخدم زر <b>☰</b> في الأعلى لفتح القائمة الجانبية
-            </div>
         </div>
     """, unsafe_allow_html=True)
 
