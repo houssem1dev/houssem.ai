@@ -28,45 +28,56 @@ st.set_page_config(
 )
 
 # ============================================================
-# THEME CSS — responsive + sidebar always visible
+# THEME CSS — responsive + working sidebar toggle
 # ============================================================
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
 
-    /* ---------- Hide Streamlit chrome, keep sidebar toggle ---------- */
-    #MainMenu, footer, .stDeployButton, .stToolbar,
+    /* Hide ONLY extra chrome — DO NOT hide the header */
+    #MainMenu, footer, .stDeployButton,
     div[data-testid="stToolbar"], div[data-testid="stDecoration"],
     div[data-testid="stStatusWidget"] {
-        visibility: hidden;
-        display: none;
+        display: none !important;
     }
 
-    /* Keep header transparent (so the > toggle arrow stays visible) */
+    /* Keep header in layout so the sidebar toggle exists */
     header[data-testid="stHeader"] {
         background: transparent !important;
         box-shadow: none !important;
-        height: auto !important;
+        height: 3rem !important;
+        opacity: 1 !important;
+        visibility: visible !important;
     }
 
-    /* Make the sidebar toggle arrow big, red, and obvious */
-    button[kind="header"],
-    button[data-testid="stSidebarCollapsedControl"],
-    button[data-testid="baseButton-header"] {
+    /* Force the sidebar toggle to be visible everywhere */
+    [data-testid="stSidebarCollapsedControl"],
+    [data-testid="collapsedControl"],
+    button[kind="headerNoPadding"],
+    button[kind="header"] {
+        visibility: visible !important;
+        display: flex !important;
+        opacity: 1 !important;
         color: #fff !important;
-        background: rgba(231,76,60,0.9) !important;
+        background: rgba(231,76,60,0.95) !important;
         border-radius: 8px !important;
-        visibility: visible !important;
-        display: inline-flex !important;
-        margin: 8px !important;
-        padding: 6px 10px !important;
-        box-shadow: 0 4px 12px rgba(231,76,60,0.5) !important;
+        margin: 6px !important;
+        padding: 6px !important;
+        z-index: 999999 !important;
+        box-shadow: 0 4px 12px rgba(231,76,60,0.6) !important;
+    }
+    [data-testid="stSidebarCollapsedControl"] svg,
+    [data-testid="collapsedControl"] svg,
+    button[kind="header"] svg,
+    button[kind="headerNoPadding"] svg {
+        fill: #fff !important;
+        color: #fff !important;
+        width: 22px !important;
+        height: 22px !important;
     }
 
-    /* ---------- Force sidebar to stay visible ---------- */
+    /* Keep sidebar visible */
     section[data-testid="stSidebar"] {
-        display: block !important;
-        visibility: visible !important;
         background: rgba(22,33,62,0.95) !important;
         border-right: 1px solid rgba(255,255,255,0.1) !important;
         min-width: 280px !important;
@@ -75,7 +86,7 @@ st.markdown("""
         padding-top: 1rem;
     }
 
-    /* ---------- Base ---------- */
+    /* Base */
     html, body, .stApp {
         background: radial-gradient(circle at 20% 20%, #1a1a2e, #16213e, #0f3460);
         font-family: 'Cairo', sans-serif;
@@ -91,7 +102,6 @@ st.markdown("""
         margin: 0 auto;
     }
 
-    /* ---------- Header ---------- */
     .custom-title {
         text-align: center;
         font-size: clamp(1.8rem, 6vw, 3rem);
@@ -109,7 +119,6 @@ st.markdown("""
         padding: 0 0.5rem;
     }
 
-    /* ---------- Stat cards ---------- */
     .stat-card {
         background: rgba(255,255,255,0.1);
         backdrop-filter: blur(10px);
@@ -132,7 +141,6 @@ st.markdown("""
         margin-top: 5px;
     }
 
-    /* ---------- Buttons ---------- */
     .stButton > button {
         background: linear-gradient(135deg,#e74c3c 0%,#c0392b 100%);
         color: white !important;
@@ -151,7 +159,6 @@ st.markdown("""
         box-shadow: 0 6px 20px rgba(231,76,60,0.5);
     }
 
-    /* ---------- Chat messages ---------- */
     .stChatMessage {
         background: rgba(255,255,255,0.05);
         border: 1px solid rgba(255,255,255,0.1);
@@ -165,7 +172,6 @@ st.markdown("""
         border: 1px solid rgba(231,76,60,0.3);
     }
 
-    /* ---------- Inputs (16px prevents iOS zoom) ---------- */
     .stTextInput input,
     .stTextArea textarea {
         background: rgba(255,255,255,0.05) !important;
@@ -180,7 +186,6 @@ st.markdown("""
         border: 1px solid #e74c3c !important;
     }
 
-    /* ---------- Chat input ---------- */
     div[data-testid="stChatInput"] {
         background: rgba(22,33,62,0.95) !important;
         border: 1px solid rgba(255,255,255,0.2) !important;
@@ -192,7 +197,6 @@ st.markdown("""
         font-size: 16px !important;
     }
 
-    /* ---------- Tabs (login / signup) ---------- */
     .stTabs [data-baseweb="tab-list"] {
         gap: 0.5rem;
         justify-content: center;
@@ -203,12 +207,10 @@ st.markdown("""
         padding: 0.5rem 1rem;
     }
 
-    /* Sidebar buttons smaller */
     section[data-testid="stSidebar"] .stButton > button {
         font-size: 0.9rem;
     }
 
-    /* ---------- Footer ---------- */
     .footer-text {
         text-align: center;
         color: #95a5a6 !important;
@@ -219,7 +221,6 @@ st.markdown("""
 
     hr { border-color: rgba(255,255,255,0.1) !important; margin: 1rem 0; }
 
-    /* ---------- Responsive: phones ---------- */
     @media (max-width: 768px) {
         .block-container { padding: 0.8rem 0.6rem 2rem 0.6rem; }
         .custom-title { font-size: clamp(1.6rem, 8vw, 2.2rem); }
@@ -397,7 +398,7 @@ with st.sidebar:
         logout()
 
     # ---------- Admin Panel ----------
-    ADMIN_USERS = ["houssem", "zaineb"]   # <-- add admin usernames here
+    ADMIN_USERS = ["houssem", "zaineb"]
     if username in ADMIN_USERS:
         with st.expander("🛠️ Admin Panel"):
             try:
