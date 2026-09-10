@@ -30,45 +30,216 @@ st.set_page_config(
 # THEME CSS
 # ============================================================
 st.markdown("""
+  st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
+
+    /* ========== HIDE STREAMLIT CHROME ========== */
     #MainMenu, footer, header, .stDeployButton, .stToolbar,
     div[data-testid="stToolbar"], div[data-testid="stDecoration"],
     div[data-testid="stStatusWidget"] {visibility: hidden; display: none;}
-    .stApp { background: radial-gradient(circle at 20% 20%, #1a1a2e, #16213e, #0f3460);
-             font-family: 'Cairo', sans-serif; color: #fff; }
-    section[data-testid="stSidebar"] {
-        background: rgba(22,33,62,0.9) !important; color:#fff !important;
-        border-right: 1px solid rgba(255,255,255,0.1) !important; }
+
+    /* ========== BASE / MOBILE-FIRST ========== */
+    html, body, .stApp {
+        background: radial-gradient(circle at 20% 20%, #1a1a2e, #16213e, #0f3460);
+        font-family: 'Cairo', sans-serif;
+        color: #fff;
+        -webkit-text-size-adjust: 100%;
+        overflow-x: hidden;
+    }
     h1,h2,h3,h4,h5,h6,p,span,div,label { color:#fff !important; }
-    .block-container { padding-top: 2rem; max-width: 1200px; }
-    .custom-title { text-align:center;font-size:3rem;font-weight:900;
-        color:#fff;margin-bottom:0;text-shadow:0 0 20px rgba(231,76,60,0.5); }
-    .custom-subtitle { text-align:center;color:#bdc3c7 !important;
-        font-size:1.1rem;margin-bottom:2rem; }
-    .stat-card { background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);
-        border:1px solid rgba(255,255,255,0.2);border-radius:15px;
-        padding:20px;text-align:center;box-shadow:0 4px 30px rgba(0,0,0,0.1);
-        margin-bottom:15px; }
-    .stat-number { font-size:2.5rem;font-weight:900;color:#e74c3c !important; }
-    .stat-label { color:#ecf0f1 !important;font-size:0.9rem;margin-top:5px; }
-    .stButton > button { background:linear-gradient(135deg,#e74c3c 0%,#c0392b 100%);
-        color:white !important;border:none;border-radius:10px;font-weight:700;
-        transition:all 0.3s ease;box-shadow:0 4px 15px rgba(231,76,60,0.3); }
-    .stButton > button:hover { transform:translateY(-2px);
-        box-shadow:0 6px 20px rgba(231,76,60,0.5); }
-    .stChatMessage { background:rgba(255,255,255,0.05);
-        border:1px solid rgba(255,255,255,0.1);border-radius:15px;
-        padding:10px;margin-bottom:10px; }
-    .stChatMessage.user { background:rgba(231,76,60,0.1);
-        border:1px solid rgba(231,76,60,0.3); }
-    div[data-testid="stChatInput"] { background:rgba(22,33,62,0.9) !important;
-        border:1px solid rgba(255,255,255,0.2) !important; }
-    div[data-testid="stChatInput"] input { color:#fff !important; }
-    hr { border-color:rgba(255,255,255,0.1) !important; }
-    .footer-text { text-align:center;color:#95a5a6 !important;
-        padding:20px;font-size:0.9rem; }
+
+    /* Responsive container: fluid padding */
+    .block-container {
+        padding: 1rem 0.8rem 2rem 0.8rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    /* Responsive typography — scales with screen width */
+    .custom-title {
+        text-align: center;
+        font-size: clamp(1.8rem, 6vw, 3rem);
+        font-weight: 900;
+        color: #fff;
+        margin-bottom: 0;
+        text-shadow: 0 0 20px rgba(231,76,60,0.5);
+        line-height: 1.2;
+    }
+    .custom-subtitle {
+        text-align: center;
+        color: #bdc3c7 !important;
+        font-size: clamp(0.8rem, 2.6vw, 1.1rem);
+        margin-bottom: 1.5rem;
+        padding: 0 0.5rem;
+    }
+
+    /* Cards: stack nicely */
+    .stat-card {
+        background: rgba(255,255,255,0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 15px;
+        padding: clamp(12px, 3vw, 20px);
+        text-align: center;
+        box-shadow: 0 4px 30px rgba(0,0,0,0.1);
+        margin-bottom: 12px;
+    }
+    .stat-number {
+        font-size: clamp(1.4rem, 5vw, 2.5rem);
+        font-weight: 900;
+        color: #e74c3c !important;
+        line-height: 1;
+    }
+    .stat-label {
+        color: #ecf0f1 !important;
+        font-size: clamp(0.7rem, 2.2vw, 0.9rem);
+        margin-top: 5px;
+    }
+
+    /* Buttons — bigger tap targets on mobile */
+    .stButton > button {
+        background: linear-gradient(135deg,#e74c3c 0%,#c0392b 100%);
+        color: white !important;
+        border: none;
+        border-radius: 10px;
+        font-weight: 700;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(231,76,60,0.3);
+        min-height: 44px;              /* iOS tap target */
+        padding: 0.6rem 1rem;
+        font-size: clamp(0.85rem, 2.5vw, 1rem);
+        width: 100%;
+    }
+    .stButton > button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(231,76,60,0.5);
+    }
+
+    /* Chat messages */
+    .stChatMessage {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 15px;
+        padding: 10px 14px;
+        margin-bottom: 10px;
+        font-size: clamp(0.85rem, 2.4vw, 1rem);
+    }
+    .stChatMessage.user {
+        background: rgba(231,76,60,0.1);
+        border: 1px solid rgba(231,76,60,0.3);
+    }
+
+    /* Inputs — full width, big tap targets */
+    .stTextInput input,
+    .stTextArea textarea {
+        background: rgba(255,255,255,0.05) !important;
+        border: 1px solid rgba(255,255,255,0.2) !important;
+        border-radius: 10px !important;
+        color: #fff !important;
+        font-size: 16px !important;    /* prevents iOS auto-zoom */
+        min-height: 44px;
+    }
+    .stTextInput input:focus,
+    .stTextArea textarea:focus {
+        border: 1px solid #e74c3c !important;
+    }
+
+    /* Chat input */
+    div[data-testid="stChatInput"] {
+        background: rgba(22,33,62,0.95) !important;
+        border: 1px solid rgba(255,255,255,0.2) !important;
+        border-radius: 12px !important;
+    }
+    div[data-testid="stChatInput"] input,
+    div[data-testid="stChatInput"] textarea {
+        color: #fff !important;
+        font-size: 16px !important;    /* prevents iOS zoom */
+    }
+
+    /* Tabs (login/signup) */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 0.5rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    .stTabs [data-baseweb="tab"] {
+        font-size: clamp(0.8rem, 2.5vw, 1rem);
+        padding: 0.5rem 1rem;
+    }
+
+    /* Sidebar */
+    section[data-testid="stSidebar"] {
+        background: rgba(22,33,62,0.95) !important;
+        border-right: 1px solid rgba(255,255,255,0.1) !important;
+    }
+    section[data-testid="stSidebar"] .stButton > button {
+        font-size: 0.9rem;
+    }
+
+    /* Footer */
+    .footer-text {
+        text-align: center;
+        color: #95a5a6 !important;
+        padding: 20px 10px;
+        font-size: clamp(0.7rem, 2.2vw, 0.9rem);
+        line-height: 1.5;
+    }
+
+    hr { border-color: rgba(255,255,255,0.1) !important; margin: 1rem 0; }
+
+    /* ========== MOBILE BREAKPOINTS ========== */
+    @media (max-width: 768px) {
+        .block-container { padding: 0.8rem 0.6rem 2rem 0.6rem; }
+        .custom-title { font-size: clamp(1.6rem, 8vw, 2.2rem); }
+        .custom-subtitle { font-size: 0.85rem; }
+
+        /* Stack columns on mobile */
+        div[data-testid="column"] {
+            width: 100% !important;
+            flex: 1 1 100% !important;
+            min-width: 100% !important;
+        }
+
+        /* Welcome card */
+        .welcome-card { padding: 24px 16px !important; }
+        .welcome-card img, .welcome-card .flag { font-size: 40px !important; }
+    }
+
+    @media (max-width: 480px) {
+        .block-container { padding: 0.6rem 0.4rem 1.5rem 0.4rem; }
+        .custom-title { font-size: 1.6rem; }
+        .stat-number { font-size: 1.4rem; }
+        .stButton > button { font-size: 0.85rem; padding: 0.55rem 0.9rem; }
+    }
+
+    /* Landscape phones */
+    @media (max-height: 500px) and (orientation: landscape) {
+        .custom-title { font-size: 1.5rem; }
+        .custom-subtitle { display: none; }
+    }
+
+    /* Tablets */
+    @media (min-width: 769px) and (max-width: 1024px) {
+        .block-container { max-width: 900px; }
+    }
+
+    /* Large desktops */
+    @media (min-width: 1600px) {
+        .block-container { max-width: 1400px; }
+    }
+
+    /* ========== TOUCH DEVICE TWEAKS ========== */
+    @media (hover: none) {
+        .stButton > button:hover { transform: none; }
+    }
+
+    /* Reduce motion for accessibility */
+    @media (prefers-reduced-motion: reduce) {
+        * { transition: none !important; animation: none !important; }
+    }
     </style>
+""", unsafe_allow_html=True)
 """, unsafe_allow_html=True)
 
 # ============================================================
