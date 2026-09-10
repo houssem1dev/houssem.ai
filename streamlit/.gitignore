@@ -1,5 +1,4 @@
 .streamlit/secrets.toml
-users.json
 logs/
 venv/
 __pycache__/
