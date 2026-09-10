@@ -7,26 +7,20 @@ import requests
 from groq import Groq
 
 # ============================================================
-# PAGE CONFIG
+# PAGE CONFIG — ① Tab title in Arabic
 # ============================================================
 st.set_page_config(
-    page_title="Houssem AI — حسام AI",
+    page_title="حسام القسنطيني — أول ذكاء اصطناعي تونسي",
     page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-# ============================================================
-# META
-# ============================================================
 st.markdown("""
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#1a1a1a">
 """, unsafe_allow_html=True)
 
-# ============================================================
-# CSS
-# ============================================================
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap');
@@ -64,7 +58,7 @@ st.markdown("""
     }
 
     /* ============================================================
-       MOBILE SIDEBAR TOGGLE — bulletproof
+       MOBILE SIDEBAR TOGGLE
        ============================================================ */
     [data-testid="stSidebarCollapsedControl"],
     [data-testid="collapsedControl"],
@@ -85,7 +79,6 @@ st.markdown("""
         box-shadow: 0 6px 20px rgba(231,0,19,0.6) !important;
         padding: 0 !important;
         cursor: pointer !important;
-        pointer-events: auto !important;
     }
     [data-testid="stSidebarCollapsedControl"] svg,
     [data-testid="collapsedControl"] svg {
@@ -96,7 +89,6 @@ st.markdown("""
         display: block !important;
     }
 
-    /* SIDEBAR */
     section[data-testid="stSidebar"] {
         background: #141414 !important;
         border-right: 1px solid #2a2a2a !important;
@@ -184,7 +176,6 @@ st.markdown("""
         background: #2a2a2a !important;
     }
 
-    /* USAGE */
     .usage-mini { display: flex; flex-direction: column; gap: 0.5rem; }
     .usage-item-mini {
         background: #1a1a1a;
@@ -206,7 +197,6 @@ st.markdown("""
         border-radius: 2px;
     }
 
-    /* STATS */
     .stats-mini { display: flex; gap: 0.4rem; flex-wrap: wrap; }
     .stat-mini {
         flex: 1; min-width: 70px;
@@ -226,7 +216,6 @@ st.markdown("""
         letter-spacing: 0.05em;
     }
 
-    /* HERO */
     .hero-ds { text-align: center; padding: 3rem 1rem 2rem 1rem; }
     .hero-ds-logo {
         display: inline-block;
@@ -253,7 +242,6 @@ st.markdown("""
         margin: 0 auto; max-width: 480px;
     }
 
-    /* SUGGESTIONS */
     .suggest-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -275,7 +263,6 @@ st.markdown("""
         font-size: 0.72rem; color: #8a8a8a !important; line-height: 1.4;
     }
 
-    /* CHAT */
     .stChatMessage {
         background: transparent !important;
         border: none !important;
@@ -317,7 +304,6 @@ st.markdown("""
         padding: 1.1rem 0 !important;
     }
 
-    /* INPUT */
     div[data-testid="stBottom"],
     div[data-testid="stBottom"] > div,
     div[data-testid="stBottomBlockContainer"] {
@@ -370,7 +356,6 @@ st.markdown("""
         height: 18px !important;
     }
 
-    /* FOOTER */
     .footer-ds {
         text-align: center;
         color: #6a6a6a !important;
@@ -388,7 +373,6 @@ st.markdown("""
         margin: 1rem 0 !important;
     }
 
-    /* RESPONSIVE */
     @media (max-width: 768px) {
         section[data-testid="stSidebar"] {
             min-width: 85vw !important;
@@ -511,7 +495,7 @@ DOMAIN_MAP = {
 }
 
 # ============================================================
-# IDENTITY — with Arabic name
+# IDENTITY
 # ============================================================
 BASE_IDENTITY = (
     "You are Houssem AI (حسام الذكاء الاصطناعي), "
@@ -521,13 +505,13 @@ BASE_IDENTITY = (
 )
 
 # ============================================================
-# SIDEBAR
+# SIDEBAR — ② Sidebar name in Arabic
 # ============================================================
 with st.sidebar:
     st.markdown("""
         <div class="sidebar-brand">
             <div class="sidebar-logo"></div>
-            <div class="sidebar-name">Houssem AI</div>
+            <div class="sidebar-name">حسام القسنطيني</div>
         </div>
     """, unsafe_allow_html=True)
 
@@ -607,14 +591,14 @@ with st.sidebar:
         st.rerun()
 
 # ============================================================
-# MAIN — HERO
+# MAIN — ③ Hero subtitle in Arabic
 # ============================================================
 if not st.session_state.messages:
     st.markdown("""
         <div class="hero-ds">
             <div class="hero-ds-logo"></div>
             <h1 class="hero-ds-title">كيف يمكنني مساعدتك؟</h1>
-            <p class="hero-ds-sub">Houssem AI — أول ذكاء اصطناعي تونسي متقدم</p>
+            <p class="hero-ds-sub">حسام القسنطيني — أول ذكاء اصطناعي تونسي متقدم</p>
         </div>
     """, unsafe_allow_html=True)
 
@@ -647,11 +631,14 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"], avatar=avatar):
         st.markdown(message["content"])
 
+# ============================================================
+# FOOTER — ④ Footer in Arabic
+# ============================================================
 if st.session_state.messages:
     st.markdown("""
         <div class="footer-ds">
-            <strong>Houssem AI</strong> · أول ذكاء اصطناعي تونسي<br>
-            طُوِّر بواسطة <strong>حسام القسنطيني</strong> من صفاقس، تونس 🇹🇳<br>
+            <strong>حسام القسنطيني</strong> · أول ذكاء اصطناعي تونسي<br>
+            من صفاقس، تونس 🇹🇳<br>
             Powered by Groq AI
         </div>
     """, unsafe_allow_html=True)
