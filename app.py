@@ -52,7 +52,9 @@ st.markdown("""
         font-family: 'Cairo', sans-serif !important;
     }
 
-    /* SIDEBAR */
+    /* ============================================================
+       SIDEBAR
+       ============================================================ */
     section[data-testid="stSidebar"] {
         background: #141414 !important;
         border-right: 1px solid #2a2a2a !important;
@@ -70,27 +72,27 @@ st.markdown("""
     }
 
     .sidebar-brand {
-        display: flex; align-items: center; gap: 0.6rem;
+        display: flex; align-items: center; gap: 0.7rem;
         padding: 0.4rem 0.4rem 1.2rem 0.4rem;
         border-bottom: 1px solid #2a2a2a;
         margin-bottom: 1.1rem;
     }
+
+    /* 🇹🇳 Tunisan flag logo */
     .sidebar-logo {
-        display: inline-flex; align-items: center; justify-content: center;
-        width: 34px; height: 34px; background: #e70013;
-        border-radius: 9px; font-size: 1.1rem; flex-shrink: 0;
-        position: relative;
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        background-image: url("https://upload.wikimedia.org/wikipedia/commons/c/ce/Flag_of_Tunisia.svg");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        flex-shrink: 0;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     }
-    .sidebar-logo::after {
-        content: ""; position: absolute;
-        width: 12px; height: 12px; background: #fff;
-        border-radius: 50%; left: 8px; top: 10px;
-    }
-    .sidebar-logo::before {
-        content: ""; position: absolute;
-        width: 10px; height: 10px; background: #e70013;
-        border-radius: 50%; left: 12px; top: 11px; z-index: 1;
-    }
+    .sidebar-logo::before,
+    .sidebar-logo::after { display: none; }
+
     .sidebar-name {
         font-size: 1rem; font-weight: 700;
         color: #fff !important; letter-spacing: -0.01em;
@@ -199,21 +201,23 @@ st.markdown("""
 
     /* HERO */
     .hero-ds { text-align: center; padding: 3rem 1rem 2rem 1rem; }
+
+    /* 🇹🇳 Tunisian flag hero */
     .hero-ds-logo {
-        display: inline-flex; align-items: center; justify-content: center;
-        width: 72px; height: 72px;
-        background: #e70013; border-radius: 20px;
-        margin-bottom: 1.25rem;
-        position: relative;
-        box-shadow: 0 8px 32px rgba(231,0,19,0.25);
+        display: inline-block;
+        width: 88px;
+        height: 88px;
+        border-radius: 22px;
+        background-image: url("https://upload.wikimedia.org/wikipedia/commons/c/ce/Flag_of_Tunisia.svg");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 12px 40px rgba(231,0,19,0.35);
+        border: 2px solid rgba(255,255,255,0.08);
     }
-    .hero-ds-logo::after {
-        content: "★"; position: absolute;
-        color: #fff; font-size: 1.6rem;
-        top: 50%; left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 2;
-    }
+    .hero-ds-logo::after { display: none; }
+
     .hero-ds-title {
         font-size: clamp(1.75rem, 5vw, 2.5rem);
         font-weight: 700; color: #fff !important;
@@ -379,7 +383,7 @@ st.markdown("""
     @media (max-width: 640px) {
         .block-container { padding: 0.75rem 0.9rem 6rem 0.9rem !important; }
         .hero-ds { padding: 2rem 0.5rem 1.5rem 0.5rem; }
-        .hero-ds-logo { width: 60px; height: 60px; font-size: 1.4rem; }
+        .hero-ds-logo { width: 72px; height: 72px; }
         .hero-ds-title { font-size: 1.6rem; }
         .hero-ds-sub { font-size: 0.85rem; }
         .suggest-grid { grid-template-columns: 1fr; margin-top: 1.2rem; }
@@ -510,7 +514,6 @@ with st.sidebar:
 
     st.markdown("### 🎯 المجال")
 
-    # Safe fallback: if old choice doesn't exist, use first option
     _domain_options = list(DOMAIN_MAP.keys())
     if st.session_state.domain_choice not in _domain_options:
         st.session_state.domain_choice = _domain_options[0]
