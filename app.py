@@ -118,16 +118,21 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ============================================================
-# GROQ CLIENT
+# GROQ CLIENT (with debug to show what key it's using)
 # ============================================================
 @st.cache_resource(show_spinner=False)
 def get_groq_client():
-    return Groq(api_key=st.secrets["GROQ_API_KEY"], max_retries=3, timeout=60.0)
+    key = st.secrets["GROQ_API_KEY"]
+    # DEBUG: show partial key in sidebar so we can verify
+    st.sidebar.warning(
+        f"🔑 Key loaded: `{key[:10]}...{key[-6:]}` (len={len(key)})"
+    )
+    return Groq(api_key=key, max_retries=3, timeout=60.0)
 
 client = get_groq_client()
 
 # ============================================================
-# IP + IN-MEMORY RATE LIMIT (no Redis)
+# IP + IN-MEMORY RATE LIMIT
 # ============================================================
 def get_client_ip() -> str:
     try:
@@ -144,14 +149,12 @@ def get_client_ip() -> str:
 
 client_ip = get_client_ip()
 
-# Rate limit config
 LIMITS = {
     "minute": (15, 60),
     "hour":   (200, 3600),
     "day":    (1500, 86400),
 }
 
-# In-memory store (resets on restart — good enough for Streamlit Cloud free tier)
 if "_rate_store" not in st.session_state:
     st.session_state._rate_store = defaultdict(list)
 
@@ -159,16 +162,12 @@ def rate_check(ip: str):
     now = time.time()
     store = st.session_state._rate_store
     key = f"ip:{ip}"
-
-    # prune + count
     for window, (limit, seconds) in LIMITS.items():
         store[f"{key}:{window}"] = [
             t for t in store[f"{key}:{window}"] if t > now - seconds
         ]
         if len(store[f"{key}:{window}"]) >= limit:
             return False, f"⏳ تجاوزت الحد ({limit} طلب). حاول لاحقاً."
-
-    # record
     for window in LIMITS:
         store[f"{key}:{window}"].append(now)
     return True, ""
@@ -177,12 +176,10 @@ def rate_usage(ip: str):
     now = time.time()
     store = st.session_state._rate_store
     key = f"ip:{ip}"
-    out = {}
-    for window, (_limit, seconds) in LIMITS.items():
-        out[window] = len([
-            t for t in store[f"{key}:{window}"] if t > now - seconds
-        ])
-    return out
+    return {
+        window: len([t for t in store[f"{key}:{window}"] if t > now - seconds])
+        for window, (_limit, seconds) in LIMITS.items()
+    }
 
 # ============================================================
 # SESSION STATE
@@ -319,20 +316,17 @@ st.markdown('<hr>', unsafe_allow_html=True)
 # ============================================================
 if prompt := st.chat_input("اكتب سؤالك هنا..."):
 
-    # Rate limit
     allowed, reason = rate_check(client_ip)
     if not allowed:
         st.warning(reason)
         st.stop()
 
-    # Store + show user message
     st.session_state.messages.append({"role": "user", "content": prompt})
     st.session_state.conversation_count += 1
 
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # LLM call
     with st.chat_message("assistant"):
         try:
             system_instruction = BASE_IDENTITY + DOMAIN_MAP[domain]
