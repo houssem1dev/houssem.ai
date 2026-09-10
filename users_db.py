@@ -1,24 +1,23 @@
 """
 Houssem AI - SQLite user storage.
-Single file database: users.db
+Creates users.db automatically on import.
 """
 
 import sqlite3
 import os
 from typing import Optional
 
-DB_FILE = "users.db"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_FILE = os.path.join(BASE_DIR, "users.db")
 
 
 def _get_conn() -> sqlite3.Connection:
-    """Open (or create) the SQLite database."""
     conn = sqlite3.connect(DB_FILE, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     return conn
 
 
 def _init_db() -> None:
-    """Create the users table if it doesn't exist."""
     with _get_conn() as conn:
         conn.execute("""
             CREATE TABLE IF NOT EXISTS users (
@@ -31,8 +30,9 @@ def _init_db() -> None:
         conn.commit()
 
 
-# Initialize on import
+# 🔥 Create users.db on import
 _init_db()
+print(f"[users_db] Database ready at: {DB_FILE}")
 
 
 def user_exists(username: str) -> bool:
@@ -58,7 +58,8 @@ def create_user(username: str, password_hash: str) -> bool:
         return True
     except sqlite3.IntegrityError:
         return False
-    except Exception:
+    except Exception as e:
+        print(f"[users_db] create_user error: {e}")
         return False
 
 
@@ -79,7 +80,6 @@ def get_user(username: str) -> Optional[dict]:
 
 
 def list_users() -> list:
-    """Return all users (for admin panel)."""
     with _get_conn() as conn:
         cur = conn.execute(
             "SELECT username, created_at FROM users ORDER BY created_at DESC"
