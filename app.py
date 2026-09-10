@@ -23,69 +23,58 @@ st.set_page_config(
 )
 
 # ============================================================
-# CSS — responsive, sidebar toggle always visible
+# CSS — clean, no header hiding, sidebar always visible
 # ============================================================
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
 
-    #MainMenu, footer, .stDeployButton,
-    div[data-testid="stToolbar"], div[data-testid="stDecoration"],
-    div[data-testid="stStatusWidget"] {
-        display: none !important;
-    }
+    /* Hide ONLY the menu and footer, keep header so sidebar toggle works */
+    #MainMenu, footer { visibility: hidden; }
+    .stDeployButton { display: none; }
+    div[data-testid="stToolbar"] { display: none; }
+    div[data-testid="stDecoration"] { display: none; }
+    div[data-testid="stStatusWidget"] { display: none; }
 
+    /* Style the header dark so it blends in */
     header[data-testid="stHeader"] {
         background: transparent !important;
-        box-shadow: none !important;
-        height: auto !important;
-        min-height: 40px !important;
+        height: 3.5rem !important;
     }
 
-    /* Sidebar toggle — big red, always visible */
-    [data-testid="stSidebarCollapsedControl"],
-    [data-testid="collapsedControl"],
-    button[kind="header"],
-    button[kind="headerNoPadding"] {
-        visibility: visible !important;
-        display: inline-flex !important;
-        opacity: 1 !important;
-        color: #fff !important;
+    /* Make the sidebar toggle arrow stand out */
+    [data-testid="stSidebarCollapsedControl"] button,
+    [data-testid="collapsedControl"] button,
+    button[kind="header"] {
         background: rgba(231,76,60,0.95) !important;
+        color: #fff !important;
         border-radius: 8px !important;
-        margin: 6px !important;
-        padding: 6px !important;
-        z-index: 9999999 !important;
-        box-shadow: 0 4px 12px rgba(231,76,60,0.6) !important;
+        border: none !important;
     }
     [data-testid="stSidebarCollapsedControl"] svg,
     [data-testid="collapsedControl"] svg,
-    button[kind="header"] svg,
-    button[kind="headerNoPadding"] svg {
+    button[kind="header"] svg {
         fill: #fff !important;
         color: #fff !important;
-        width: 22px !important;
-        height: 22px !important;
     }
 
+    /* Sidebar background */
     section[data-testid="stSidebar"] {
         background: rgba(22,33,62,0.98) !important;
         border-right: 2px solid rgba(231,76,60,0.4) !important;
     }
 
+    /* Base */
     html, body, .stApp {
         background: radial-gradient(circle at 20% 20%, #1a1a2e, #16213e, #0f3460);
         font-family: 'Cairo', sans-serif;
         color: #fff;
-        -webkit-text-size-adjust: 100%;
-        overflow-x: hidden;
     }
     h1,h2,h3,h4,h5,h6,p,span,div,label { color:#fff !important; }
 
     .block-container {
-        padding: 1rem 0.8rem 2rem 0.8rem;
+        padding: 1.5rem 1rem 2rem 1rem;
         max-width: 1100px;
-        margin: 0 auto;
     }
 
     .custom-title {
@@ -107,23 +96,21 @@ st.markdown("""
 
     .stat-card {
         background: rgba(255,255,255,0.08);
-        backdrop-filter: blur(10px);
         border: 1px solid rgba(255,255,255,0.15);
         border-radius: 15px;
         padding: 14px 10px;
         text-align: center;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
         margin-bottom: 10px;
     }
     .stat-number {
-        font-size: clamp(1.2rem, 4vw, 1.8rem);
+        font-size: 1.6rem;
         font-weight: 900;
         color: #e74c3c !important;
         line-height: 1;
     }
     .stat-label {
         color: #ecf0f1 !important;
-        font-size: clamp(0.7rem, 2vw, 0.85rem);
+        font-size: 0.8rem;
         margin-top: 4px;
     }
 
@@ -133,11 +120,9 @@ st.markdown("""
         border: none;
         border-radius: 10px;
         font-weight: 700;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(231,76,60,0.3);
         min-height: 44px;
         padding: 0.6rem 1rem;
-        font-size: clamp(0.85rem, 2.5vw, 1rem);
+        font-size: 0.95rem;
         width: 100%;
     }
     .stButton > button:hover {
@@ -151,21 +136,10 @@ st.markdown("""
         border-radius: 15px;
         padding: 10px 14px;
         margin-bottom: 10px;
-        font-size: clamp(0.85rem, 2.4vw, 1rem);
     }
     .stChatMessage.user {
         background: rgba(231,76,60,0.1);
         border: 1px solid rgba(231,76,60,0.3);
-    }
-
-    .stTextInput input,
-    .stTextArea textarea {
-        background: rgba(255,255,255,0.05) !important;
-        border: 1px solid rgba(255,255,255,0.2) !important;
-        border-radius: 10px !important;
-        color: #fff !important;
-        font-size: 16px !important;
-        min-height: 44px;
     }
 
     div[data-testid="stChatInput"] {
@@ -183,26 +157,11 @@ st.markdown("""
         text-align: center;
         color: #95a5a6 !important;
         padding: 20px 10px;
-        font-size: clamp(0.7rem, 2.2vw, 0.9rem);
+        font-size: 0.85rem;
         line-height: 1.5;
     }
 
     hr { border-color: rgba(255,255,255,0.1) !important; margin: 1rem 0; }
-
-    @media (max-width: 768px) {
-        .block-container { padding: 0.8rem 0.6rem 2rem 0.6rem; }
-        .custom-title { font-size: clamp(1.6rem, 8vw, 2.2rem); }
-        .custom-subtitle { font-size: 0.85rem; }
-        div[data-testid="column"] {
-            width: 100% !important;
-            flex: 1 1 100% !important;
-            min-width: 100% !important;
-        }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-        * { transition: none !important; animation: none !important; }
-    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -273,7 +232,7 @@ DOMAIN_MAP = {
 BASE_IDENTITY = "You are Houssem AI, created by Houssem Kessentini. "
 
 # ============================================================
-# SIDEBAR — all controls here
+# SIDEBAR — all controls
 # ============================================================
 with st.sidebar:
     st.markdown("## ⚡ Houssem AI")
@@ -281,7 +240,6 @@ with st.sidebar:
     st.markdown("---")
 
     st.markdown("### ⚙️ لوحة التحكم")
-
     st.session_state.domain_choice = st.selectbox(
         "🎯 المجال التحليلي:",
         list(DOMAIN_MAP.keys()),
@@ -291,7 +249,7 @@ with st.sidebar:
     domain = st.session_state.domain_choice
 
     st.markdown("---")
-    st.markdown("### 📊 استهلاكك (IP)")
+    st.markdown("### 📊 استهلاكك")
 
     try:
         usage = limiter.get_usage(f"ip:{client_ip}")
@@ -312,14 +270,14 @@ with st.sidebar:
         st.markdown(f"""
             <div class="stat-card">
                 <div class="stat-number">{st.session_state.conversation_count}</div>
-                <div class="stat-label">الرسائل المرسلة</div>
+                <div class="stat-label">الرسائل</div>
             </div>
         """, unsafe_allow_html=True)
     with col2:
         st.markdown(f"""
             <div class="stat-card">
                 <div class="stat-number">{len(st.session_state.messages)}</div>
-                <div class="stat-label">في المحادثة</div>
+                <div class="stat-label">المحادثة</div>
             </div>
         """, unsafe_allow_html=True)
 
@@ -347,7 +305,7 @@ with st.sidebar:
     st.caption(f"🌍 IP: `{client_ip}`")
 
 # ============================================================
-# HEADER
+# MAIN AREA
 # ============================================================
 st.markdown('<h1 class="custom-title">⚡ Houssem AI</h1>', unsafe_allow_html=True)
 st.markdown(
@@ -355,9 +313,6 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# ============================================================
-# WELCOME
-# ============================================================
 if not st.session_state.messages:
     st.markdown("""
         <div style="text-align:center;padding:40px;color:#95a5a6;">
@@ -365,16 +320,10 @@ if not st.session_state.messages:
             <div style="font-size:1.5rem;font-weight:700;margin:10px 0;color:#fff;">
                 مرحباً بك في Houssem AI
             </div>
-            <div>اختر المجال ثم اكتب سؤالك في الأسفل</div>
-            <div style="margin-top:12px;font-size:0.8rem;color:#7f8c8d;">
-                💡 اضغط على زر <b>»</b> في الأعلى لفتح القائمة الجانبية
-            </div>
+            <div>اختر المجال من القائمة الجانبية واكتب سؤالك</div>
         </div>
     """, unsafe_allow_html=True)
 
-# ============================================================
-# CHAT HISTORY
-# ============================================================
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
@@ -386,14 +335,12 @@ st.markdown('<hr>', unsafe_allow_html=True)
 # ============================================================
 if prompt := st.chat_input("اكتب سؤالك هنا..."):
 
-    # Rate limit by IP
     rate_key = f"ip:{client_ip}"
     allowed, reason = limiter.check(rate_key)
     if not allowed:
         st.warning(reason)
         st.stop()
 
-    # Validation
     ok, err = validate_input(prompt)
     if not ok:
         st.error(err)
@@ -407,7 +354,6 @@ if prompt := st.chat_input("اكتب سؤالك هنا..."):
     with st.chat_message("user"):
         st.markdown(safe_prompt)
 
-    # LLM call
     with st.chat_message("assistant"):
         try:
             system_instruction = build_system_prompt(BASE_IDENTITY, DOMAIN_MAP[domain])
@@ -449,9 +395,6 @@ if prompt := st.chat_input("اكتب سؤالك هنا..."):
         except Exception as e:
             st.error("❌ حدث خطأ تقني. الرجاء المحاولة مرة أخرى.")
 
-# ============================================================
-# FOOTER
-# ============================================================
 st.markdown("""
     <div class="footer-text">
         🇹🇳 Developed with ❤️ in <strong>Sfax, Tunisia</strong>
