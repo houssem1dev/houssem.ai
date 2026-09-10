@@ -5,7 +5,7 @@ import streamlit as st
 from groq import Groq
 
 # Local modules
-from auth import require_auth, logout, current_user
+from auth import require_auth, logout
 from audit import audit
 from rate_limit import RedisRateLimiter
 from security import (
@@ -14,7 +14,6 @@ from security import (
     build_system_prompt,
     trim_history,
     hash_session_id,
-    detect_prompt_injection,
     MAX_MESSAGES_IN_HISTORY,
 )
 
@@ -29,7 +28,7 @@ st.set_page_config(
 )
 
 # ============================================================
-# THEME (your original CSS, condensed)
+# THEME CSS
 # ============================================================
 st.markdown("""
     <style>
@@ -74,7 +73,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ============================================================
-# AUTH GATE
+# AUTH GATE — stops app if not logged in
 # ============================================================
 username = require_auth()
 
@@ -85,10 +84,12 @@ username = require_auth()
 def get_groq_client():
     return Groq(api_key=st.secrets["GROQ_API_KEY"], max_retries=3, timeout=60.0)
 
+
 @st.cache_resource(show_spinner=False)
 def get_rate_limiter():
     redis_url = st.secrets.get("REDIS_URL", "redis://localhost:6379/0")
     return RedisRateLimiter(redis_url)
+
 
 client = get_groq_client()
 limiter = get_rate_limiter()
@@ -96,14 +97,12 @@ limiter = get_rate_limiter()
 # ============================================================
 # SESSION STATE
 # ============================================================
-defaults = {
-    "messages": [],
-    "conversation_count": 0,
-    "session_id": hash_session_id(f"{username}:{time.time()}"),
-}
-for k, v in defaults.items():
-    if k not in st.session_state:
-        st.session_state[k] = v
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+if "conversation_count" not in st.session_state:
+    st.session_state.conversation_count = 0
+if "session_id" not in st.session_state:
+    st.session_state.session_id = hash_session_id(f"{username}:{time.time()}")
 
 # ============================================================
 # HEADER
@@ -151,15 +150,19 @@ with st.sidebar:
     )
 
     st.markdown("---")
-
-    # Usage display
-    usage = limiter.get_usage(st.session_state.session_id)
     st.markdown("### 📊 الاستهلاك")
-    for window, count in usage.items():
-        limit = {"minute": 15, "hour": 200, "day": 1500}[window]
-        label = {"minute": "دقيقة", "hour": "ساعة", "day": "يوم"}[window]
-        pct = min(count / limit, 1.0) if limit else 0
-        st.progress(pct, text=f"{label}: {count}/{limit}")
+
+    try:
+        usage = limiter.get_usage(st.session_state.session_id)
+        limits_map = {"minute": 15, "hour": 200, "day": 1500}
+        labels_map = {"minute": "دقيقة", "hour": "ساعة", "day": "يوم"}
+        for window, count in usage.items():
+            limit = limits_map.get(window, 1)
+            label = labels_map.get(window, window)
+            pct = min(count / limit, 1.0) if limit else 0.0
+            st.progress(pct, text=f"{label}: {count}/{limit}")
+    except Exception:
+        st.caption("معلومات الاستهلاك غير متاحة.")
 
     st.markdown("---")
 
@@ -183,7 +186,7 @@ with st.sidebar:
 
     if st.session_state.messages:
         chat_text = "\n".join(
-            f"{'👤' if m['role']=='user' else '🤖'}: {m['content']}"
+            f"{'👤' if m['role'] == 'user' else '🤖'}: {m['content']}"
             for m in st.session_state.messages
         )
         st.download_button(
@@ -253,8 +256,7 @@ if prompt := st.chat_input("اكتب سؤالك هنا..."):
     if not ok:
         event = "harmful_blocked" if "غير مسموح" in err else "injection_blocked"
         audit(event, err, session=sid, user=username, domain=domain,
-              level="WARNING",
-              preview=prompt[:120])
+              level="WARNING", preview=prompt[:120])
         st.error(err)
         st.stop()
 
@@ -276,14 +278,15 @@ if prompt := st.chat_input("اكتب سؤالك هنا..."):
     with st.chat_message("assistant"):
         try:
             system_instruction = build_system_prompt(BASE_IDENTITY, DOMAIN_MAP[domain])
-            history = trim_history(st.session_state.messages, MAX_MESSAGES_IN_HISTORY)
+            history = trim_history(
+                st.session_state.messages, MAX_MESSAGES_IN_HISTORY
+            )
 
             api_messages = [{"role": "system", "content": system_instruction}]
             api_messages.extend(
                 {"role": m["role"], "content": m["content"]} for m in history
             )
 
-            t0 = time.time()
             stream = client.chat.completions.create(
                 model="openai/gpt-oss-20b",
                 messages=api_messages,
@@ -297,4 +300,36 @@ if prompt := st.chat_input("اكتب سؤالك هنا..."):
             buffer = []
 
             for chunk in stream:
-                if
+                if chunk.choices and chunk.choices[0].delta.content:
+                    buffer.append(chunk.choices[0].delta.content)
+                    if len(buffer) >= 5:
+                        full_response += "".join(buffer)
+                        buffer.clear()
+                        placeholder.markdown(full_response + "▌")
+
+            if buffer:
+                full_response += "".join(buffer)
+            placeholder.markdown(full_response)
+
+            st.session_state.messages.append(
+                {"role": "assistant", "content": full_response}
+            )
+
+            audit("chat_response", f"len={len(full_response)}",
+                  session=sid, user=username, domain=domain)
+
+        except Exception as e:
+            audit("chat_error", str(e), session=sid, user=username,
+                  level="ERROR")
+            st.error("❌ حدث خطأ تقني. الرجاء المحاولة مرة أخرى.")
+
+# ============================================================
+# FOOTER
+# ============================================================
+st.markdown("""
+    <div class="footer-text">
+        🇹🇳 Developed with ❤️ in <strong>Sfax, Tunisia</strong>
+        by <strong>Houssem Kessentini</strong> 🇹🇳<br>
+        ⚡ Powered by Groq AI | 🛡️ Secured | © 2026
+    </div>
+""", unsafe_allow_html=True)
