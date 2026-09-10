@@ -6,9 +6,6 @@ import streamlit as st
 import requests
 from groq import Groq
 
-# ============================================================
-# PAGE CONFIG
-# ============================================================
 st.set_page_config(
     page_title="Houssem AI",
     page_icon="⚡",
@@ -28,6 +25,8 @@ st.markdown(
 CSS = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0&display=swap');
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
 
 *, *::before, *::after { box-sizing: border-box; }
 html, body {
@@ -59,12 +58,44 @@ h1,h2,h3,h4,h5,h6,p,span,div,label,li,a {
     font-family: 'Cairo', sans-serif !important;
 }
 
-/* Hide Streamlit's native toggle (we use our own) */
+/* ============================================================
+   KILL material icon text ("keyboard_double_arrow_left", etc.)
+   ============================================================ */
+[data-testid="stIconMaterial"],
+.material-symbols-rounded,
+.material-symbols-outlined,
+.material-icons {
+    font-family: 'Material Symbols Rounded', 'Material Icons', sans-serif !important;
+    font-weight: normal !important;
+    font-style: normal !important;
+    font-size: 24px !important;
+    line-height: 1 !important;
+    letter-spacing: normal !important;
+    text-transform: none !important;
+    display: inline-block !important;
+    white-space: nowrap !important;
+    direction: ltr !important;
+    -webkit-font-feature-settings: 'liga' !important;
+    -webkit-font-smoothing: antialiased !important;
+    font-feature-settings: 'liga' !important;
+}
+
+/* Hide the sidebar close button entirely */
+[data-testid="stSidebarCollapseButton"],
+[data-testid="stSidebarCollapseButton"] *,
+[data-testid="stSidebarNav"] ~ [data-testid="stSidebarCollapseButton"] {
+    display: none !important;
+    visibility: hidden !important;
+}
+
 [data-testid="stSidebarCollapsedControl"],
 [data-testid="collapsedControl"] {
     display: none !important;
 }
 
+/* ============================================================
+   SIDEBAR
+   ============================================================ */
 section[data-testid="stSidebar"] {
     background: #141414 !important;
     border-right: 1px solid #2a2a2a !important;
@@ -128,40 +159,59 @@ section[data-testid="stSidebar"] .stButton > button:hover {
     border-color: #3a3a3a !important;
 }
 
+/* ============================================================
+   FORCE DROPDOWN DARK — full override
+   ============================================================ */
 section[data-testid="stSidebar"] div[data-baseweb="select"],
+section[data-testid="stSidebar"] div[data-baseweb="select"] *,
 section[data-testid="stSidebar"] div[data-baseweb="select"] > div,
 section[data-testid="stSidebar"] div[data-baseweb="select"] > div > div,
+section[data-testid="stSidebar"] div[data-baseweb="select"] > div > div > div,
 section[data-testid="stSidebar"] div[role="combobox"],
-section[data-testid="stSidebar"] div[role="combobox"] * {
+section[data-testid="stSidebar"] div[role="combobox"] *,
+section[data-testid="stSidebar"] div[role="combobox"] > div {
     background: #1f1f1f !important;
     background-color: #1f1f1f !important;
+    background-image: none !important;
     color: #ececec !important;
     border-color: #2f2f2f !important;
+    box-shadow: none !important;
 }
+
 section[data-testid="stSidebar"] div[data-baseweb="select"] > div {
     border-radius: 10px !important;
-    min-height: 42px;
+    min-height: 42px !important;
     font-size: 0.85rem !important;
     direction: rtl !important;
+    border: 1px solid #2f2f2f !important;
 }
+
+section[data-testid="stSidebar"] div[data-baseweb="select"] input,
 section[data-testid="stSidebar"] div[data-baseweb="select"] div[aria-selected="true"],
 section[data-testid="stSidebar"] div[data-baseweb="select"] span {
     color: #ececec !important;
     background: transparent !important;
+    -webkit-text-fill-color: #ececec !important;
 }
+
 section[data-testid="stSidebar"] div[data-baseweb="select"] svg {
     fill: #8a8a8a !important;
     color: #8a8a8a !important;
 }
 
+/* Dropdown popup */
+div[data-baseweb="popover"],
 div[data-baseweb="popover"] *,
 div[data-baseweb="popover"] ul,
 div[data-baseweb="popover"] li,
+div[data-baseweb="popover"] div,
 ul[role="listbox"],
+ul[role="listbox"] *,
 li[role="option"] {
     background: #1f1f1f !important;
     background-color: #1f1f1f !important;
     color: #ececec !important;
+    border-color: #2f2f2f !important;
 }
 li[role="option"] {
     padding: 10px 14px !important;
@@ -174,6 +224,7 @@ li[role="option"][aria-selected="true"] {
     background: #2a2a2a !important;
 }
 
+/* Usage bars */
 .usage-mini { display: flex; flex-direction: column; gap: 0.5rem; }
 .usage-item-mini {
     background: #1a1a1a;
@@ -214,6 +265,7 @@ li[role="option"][aria-selected="true"] {
     letter-spacing: 0.05em;
 }
 
+/* HERO */
 .hero-ds { text-align: center; padding: 3rem 1rem 2rem 1rem; }
 .hero-ds-logo {
     display: inline-block;
@@ -378,29 +430,28 @@ hr {
     margin: 1rem 0 !important;
 }
 
-/* Floating toggle button — bottom-left, always visible */
+/* Floating sidebar toggle */
 .floating-toggle button {
     position: fixed !important;
-    bottom: 90px !important;
+    top: 16px !important;
     left: 16px !important;
     z-index: 2147483647 !important;
     background: linear-gradient(135deg, #e70013, #b30010) !important;
     color: #fff !important;
     border: 2px solid rgba(255,255,255,0.3) !important;
-    border-radius: 50% !important;
-    width: 56px !important;
-    height: 56px !important;
-    min-width: 56px !important;
-    min-height: 56px !important;
-    font-size: 24px !important;
+    border-radius: 12px !important;
+    width: 48px !important;
+    height: 48px !important;
+    min-width: 48px !important;
+    min-height: 48px !important;
+    font-size: 22px !important;
     font-weight: 700 !important;
     padding: 0 !important;
     line-height: 1 !important;
-    box-shadow: 0 6px 24px rgba(231,0,19,0.7) !important;
+    box-shadow: 0 6px 20px rgba(231,0,19,0.6) !important;
 }
 .floating-toggle button:hover {
     transform: scale(1.08);
-    box-shadow: 0 8px 28px rgba(231,0,19,0.9) !important;
 }
 
 @media (max-width: 768px) {
@@ -519,9 +570,6 @@ if "domain_choice" not in st.session_state:
 if "sidebar_open" not in st.session_state:
     st.session_state.sidebar_open = True
 
-# ============================================================
-# YOUR NAME
-# ============================================================
 MY_NAME_AR = "حسام القسنطيني"
 MY_NAME_EN = "Houssem Kessentini"
 
@@ -550,20 +598,21 @@ BASE_IDENTITY = (
 )
 
 # ============================================================
-# FLOATING TOGGLE BUTTON — bottom-left, works on all phones
+# FLOATING TOGGLE BUTTON
 # ============================================================
 st.markdown('<div class="floating-toggle">', unsafe_allow_html=True)
-if st.button("☰", key="sidebar_toggle_btn", help="فتح / إغلاق القائمة"):
+if st.button("☰", key="sidebar_toggle_btn"):
     st.session_state.sidebar_open = not st.session_state.sidebar_open
     st.rerun()
 st.markdown('</div>', unsafe_allow_html=True)
 
 # ============================================================
-# TOP BAR — your name in the top-right
+# TOP BAR — name pill
 # ============================================================
 top_bar_html = (
     '<div style="display:flex;align-items:center;justify-content:flex-end;'
-    'padding:4px 12px 12px 12px;margin-bottom:8px;min-height:40px;">'
+    'padding:4px 12px 12px 12px;margin-bottom:8px;min-height:40px;'
+    'padding-left:80px;">'
     '<div style="display:flex;align-items:center;gap:8px;'
     'background:rgba(231,0,19,0.12);border:1px solid rgba(231,0,19,0.35);'
     'border-radius:20px;padding:5px 14px;">'
