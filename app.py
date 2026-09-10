@@ -118,16 +118,14 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ============================================================
-# GROQ CLIENT (with debug to show what key it's using)
+# GROQ CLIENT (no cache, always reads fresh secret)
 # ============================================================
-@st.cache_resource(show_spinner=False)
 def get_groq_client():
-    key = st.secrets["GROQ_API_KEY"]
-    # DEBUG: show partial key in sidebar so we can verify
-    st.sidebar.warning(
-        f"🔑 Key loaded: `{key[:10]}...{key[-6:]}` (len={len(key)})"
+    return Groq(
+        api_key=st.secrets["GROQ_API_KEY"],
+        max_retries=3,
+        timeout=60.0,
     )
-    return Groq(api_key=key, max_retries=3, timeout=60.0)
 
 client = get_groq_client()
 
