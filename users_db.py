@@ -85,7 +85,7 @@ if DATABASE_URL:
             cur.execute("SELECT COUNT(*) as c FROM users")
             return cur.fetchone()["c"]
 
-    print("[users_db] ✅ Using Supabase (Postgres) backend")
+    print("[users_db] Using Supabase (Postgres) backend")
 
 
 # ============================================================
@@ -167,4 +167,4 @@ else:
             cur = conn.execute("SELECT COUNT(*) as c FROM users")
             return cur.fetchone()["c"]
 
-    print(f"[users_db] ⚠️ Using local SQLite at: {DB_FILE} (NOT persistent)")
+    print(f"[users_db] Using local SQLite at: {DB_FILE}")
