@@ -247,4 +247,144 @@ overlay.addEventListener("click", closeSidebar);
 document.querySelectorAll(".suggest-card").forEach(card => {
     card.addEventListener("click", () => {
         const prompt = card.dataset.prompt;
-        if (prompt) { userInput.value = prompt; sendMessage();
+        if (prompt) { userInput.value = prompt; sendMessage(); }
+    });
+});
+
+domainSelect.addEventListener("change", () => { state.domain = domainSelect.value; });
+
+clearBtn.addEventListener("click", () => {
+    if (confirm("هل تريد مسح المحادثة؟")) {
+        state.messages = []; state.count = 0;
+        chatInner.innerHTML = ""; chatInner.appendChild(hero);
+        hero.style.display = "block";
+        updateStats(); closeSidebar();
+    }
+});
+
+exportBtn.addEventListener("click", () => {
+    if (state.messages.length === 0) { alert("لا توجد محادثة للتصدير"); return; }
+    const text = state.messages.map(m => (m.role === "user" ? "👤: " : "🤖: ") + m.content).join("\n\n");
+    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "houssem_ai_chat_" + Date.now() + ".txt"; a.click();
+    URL.revokeObjectURL(url);
+});
+
+function updateStats() {
+    $("statMsgs").textContent = state.count;
+    $("statVisits").textContent = localStorage.getItem("visits") || "1";
+}
+
+(async function initVisits() {
+    try {
+        const r = await fetch("https://api.countapi.xyz/hit/houssem-ai-tn/visits");
+        const j = await r.json();
+        localStorage.setItem("visits", j.value || 1);
+    } catch (e) { localStorage.setItem("visits", "1"); }
+    updateStats();
+})();
+
+function updateUsage() {
+    const now = Date.now();
+    const key = "usage_" + new Date().toDateString();
+    const usage = JSON.parse(localStorage.getItem(key) || "[]");
+    const fresh = usage.filter(t => now - t < 86400000);
+    localStorage.setItem(key, JSON.stringify(fresh));
+    const lastMin = fresh.filter(t => now - t < 60000).length;
+    const lastHour = fresh.filter(t => now - t < 3600000).length;
+    const lastDay = fresh.length;
+    $("uMin").textContent = lastMin + " / 15";
+    $("uHour").textContent = lastHour + " / 200";
+    $("uDay").textContent = lastDay + " / 1500";
+    $("uMinBar").style.width = Math.max((lastMin/15)*100, 1) + "%";
+    $("uHourBar").style.width = Math.max((lastHour/200)*100, 1) + "%";
+    $("uDayBar").style.width = Math.max((lastDay/1500)*100, 1) + "%";
+}
+function recordUsage() {
+    const key = "usage_" + new Date().toDateString();
+    const usage = JSON.parse(localStorage.getItem(key) || "[]");
+    usage.push(Date.now());
+    localStorage.setItem(key, JSON.stringify(usage));
+    updateUsage();
+}
+updateUsage();
+
+function addMessage(role, content) {
+    hero.style.display = "none";
+    const div = document.createElement("div");
+    div.className = "message " + role;
+    if (role === "assistant") {
+        div.innerHTML = renderMarkdown(content);
+    } else {
+        div.textContent = content;
+    }
+    chatInner.appendChild(div);
+    chatArea.scrollTop = chatArea.scrollHeight;
+    return div;
+}
+
+function addStreamingMessage() {
+    hero.style.display = "none";
+    const div = document.createElement("div");
+    div.className = "message assistant typing";
+    chatInner.appendChild(div);
+    chatArea.scrollTop = chatArea.scrollHeight;
+    return div;
+}
+
+async function sendMessage() {
+    const prompt = userInput.value.trim();
+    if (!prompt) return;
+    userInput.value = "";
+    sendBtn.disabled = true;
+
+    state.messages.push({ role: "user", content: prompt });
+    state.count += 1;
+    addMessage("user", prompt);
+    recordUsage();
+    updateStats();
+
+    const assistantDiv = addStreamingMessage();
+    let fullText = "";
+
+    try {
+        const response = await fetch(API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                messages: state.messages.slice(-20),
+                domain: state.domain,
+            })
+        });
+
+        if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            throw new Error(errData.error || "HTTP " + response.status);
+        }
+
+        const data = await response.json();
+        fullText = data.reply || "";
+
+        assistantDiv.classList.remove("typing");
+        assistantDiv.innerHTML = renderMarkdown(fullText);
+        state.messages.push({ role: "assistant", content: fullText });
+
+    } catch (err) {
+        assistantDiv.classList.remove("typing");
+        assistantDiv.textContent = "❌ خطأ: " + err.message;
+    } finally {
+        sendBtn.disabled = false;
+        userInput.focus();
+    }
+}
+
+sendBtn.addEventListener("click", sendMessage);
+userInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
+</script>
+
+</body>
+</html>
