@@ -203,33 +203,9 @@ button, input, textarea { font-family: inherit; }
 
 <script>
 // ============================================================
-// PUT YOUR API DETAILS HERE
+// ✅ SECURE: calls OUR OWN backend (/api/chat) — no API key here
 // ============================================================
-const API_URL = "https://api.openai.com/v1/chat/completions";
-const API_KEY = "sk-YOUR-KEY-HERE";
-const MODEL = "gpt-4o-mini";
-
-const DOMAIN_PROMPTS = {
-    cyber: "You are a Cybersecurity Architect. Provide detailed defensive security analysis.",
-    software: "You are a Senior Software Architect. Provide production-ready code.",
-    trading: "You are a Quantitative Trader. Provide market analysis with risk disclaimers.",
-    marketing: "You are a Growth Marketing Strategist.",
-    news: "You are a Tech Intelligence Analyst."
-};
-
-const BASE_IDENTITY =
-    "You are Houssem AI,one of the first Tunisian AI, created by Houssem Kessentini from Sfax, Tunisia. " +
-    "The user is Houssem Kessentini.\n\n" +
-    "STRICT RULES:\n" +
-    "1. LANGUAGE PURITY: Reply ONLY in the exact language of the user's LAST message. " +
-    "If Arabic → 100% Arabic. If English → 100% English. If French → 100% French. " +
-    "DO NOT mix languages. DO NOT use any word from another language.\n" +
-    "2. When the user greets you (hi, hello, hey, bonjour, salut, مرحبا, أهلا, السلام عليكم):\n" +
-    "   - English → reply EXACTLY: 'Hello! I am Houssem AI, created by Houssem Kessentini. How can I help you?'\n" +
-    "   - Arabic → reply EXACTLY: 'مرحباً! أنا حسام AI، طورني حسام القسنطيني. كيف يمكنني مساعدتك؟'\n" +
-    "   - French → reply EXACTLY: 'Bonjour ! Je suis Houssem AI, créé par Houssem Kessentini. Comment puis-je vous aider ?'\n" +
-    "3. Never add titles like 'IT Engineer' or 'مهندس'. Never add extra words. Just use the exact format above.\n" +
-    "4. For all other messages (non-greetings), just respond normally in the user's language.";
+const API_URL = "/api/chat";
 
 const state = { messages: [], domain: "cyber", count: 0 };
 
@@ -286,12 +262,10 @@ function updateStats() {
     $("statVisits").textContent = localStorage.getItem("visits") || "1";
 }
 
-(async function initVisits() {
-    try {
-        const r = await fetch("https://api.countapi.xyz/hit/houssem-ai-tn/visits");
-        const j = await r.json();
-        localStorage.setItem("visits", j.value || 1);
-    } catch (e) { localStorage.setItem("visits", "1"); }
+// Local visit counter (no external service)
+(function initVisits() {
+    const current = parseInt(localStorage.getItem("visits") || "0", 10) + 1;
+    localStorage.setItem("visits", String(current));
     updateStats();
 })();
 
@@ -324,11 +298,8 @@ function addMessage(role, content) {
     hero.style.display = "none";
     const div = document.createElement("div");
     div.className = "message " + role;
-    if (role === "assistant") {
-        div.innerHTML = renderMarkdown(content);
-    } else {
-        div.textContent = content;
-    }
+    if (role === "assistant") div.innerHTML = renderMarkdown(content);
+    else div.textContent = content;
     chatInner.appendChild(div);
     chatArea.scrollTop = chatArea.scrollHeight;
     return div;
@@ -356,59 +327,24 @@ async function sendMessage() {
     updateStats();
 
     const assistantDiv = addStreamingMessage();
-    let fullText = "";
 
     try {
-        const sys = BASE_IDENTITY + " " + DOMAIN_PROMPTS[state.domain];
-        const apiMessages = [{ role: "system", content: sys }, ...state.messages.slice(-20)];
-
         const response = await fetch(API_URL, {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": "Bearer " + API_KEY
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                model: MODEL,
-                messages: apiMessages,
-                temperature: 0.4,
-                max_tokens: 2048,
-                stream: true
-            })
+                messages: state.messages.slice(-20),
+                domain: state.domain,
+            }),
         });
 
+        const data = await response.json().catch(() => ({}));
+
         if (!response.ok) {
-            const err = await response.text();
-            throw new Error("HTTP " + response.status + ": " + err);
+            throw new Error(data.error || ("HTTP " + response.status));
         }
 
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = "";
-
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split("\n");
-            buffer = lines.pop();
-            for (const line of lines) {
-                const trimmed = line.trim();
-                if (!trimmed.startsWith("data: ")) continue;
-                const data = trimmed.slice(6);
-                if (data === "[DONE]") continue;
-                try {
-                    const json = JSON.parse(data);
-                    const delta = json.choices?.[0]?.delta?.content;
-                    if (delta) {
-                        fullText += delta;
-                        assistantDiv.innerHTML = renderMarkdown(fullText);
-                        chatArea.scrollTop = chatArea.scrollHeight;
-                    }
-                } catch (e) {}
-            }
-        }
-
+        const fullText = data.reply || "(no response)";
         assistantDiv.classList.remove("typing");
         assistantDiv.innerHTML = renderMarkdown(fullText);
         state.messages.push({ role: "assistant", content: fullText });
