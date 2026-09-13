@@ -1,4 +1,6 @@
 // api/chat.js — Vercel Node.js Serverless Function
+// Auto-detects Groq or OpenAI based on env vars.
+// ─────────────────────────────────────────────────────
 
 const BASE_IDENTITY =
   "You are Houssem AI, one of the first Tunisian AI, created by Houssem Kessentini from Sfax, Tunisia. " +
@@ -62,7 +64,7 @@ function inspectOutput(text) {
   return { ok: true };
 }
 
-// Simple in-memory rate limiter (per warm instance)
+// In-memory rate limiter (per warm serverless instance)
 const rateBucket = new Map();
 function rateLimit(ip, max = 15, windowMs = 60_000) {
   const now = Date.now();
@@ -77,7 +79,7 @@ function rateLimit(ip, max = 15, windowMs = 60_000) {
 }
 
 export default async function handler(req, res) {
-  // CORS — same-origin only
+  // ── CORS ─────────────────────────────────────────────
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -86,7 +88,7 @@ export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   try {
-    // Rate limit
+    // ── Rate limit ─────────────────────────────────────
     const ip =
       (req.headers["x-forwarded-for"] || "").split(",")[0].trim() ||
       req.socket?.remoteAddress ||
@@ -104,25 +106,50 @@ export default async function handler(req, res) {
     const lastUserMessage = messages[messages.length - 1]?.content || "";
     const inputCheck = inspectInput(lastUserMessage);
     if (!inputCheck.ok) {
-      return res.status(400).json({ error: "Request blocked by security firewall.", reason: inputCheck.reason });
+      return res.status(400).json({
+        error: "Request blocked by security firewall.",
+        reason: inputCheck.reason,
+      });
     }
 
     const sysPrompt = BASE_IDENTITY + "\n\n" + (DOMAIN_PROMPTS[domain] || DOMAIN_PROMPTS.cyber);
-    const apiMessages = [{ role: "system", content: sysPrompt }, ...messages.slice(-20)];
+    const apiMessages = [
+      { role: "system", content: sysPrompt },
+      ...messages.slice(-20),
+    ];
 
-    // Supports both OpenAI and Groq
-    const apiKey = process.env.OPENAI_API_KEY || process.env.GROQ_API_KEY;
-    const baseUrl =
-      process.env.AI_BASE_URL ||
-      (process.env.GROQ_API_KEY ? "https://api.groq.com/openai/v1" : "https://api.openai.com/v1");
-    const model =
-      process.env.AI_MODEL ||
-      (process.env.GROQ_API_KEY ? "llama-3.3-70b-versatile" : "gpt-4o-mini");
+    // ── Provider detection ─────────────────────────────
+    // Priority: explicit env vars → Groq key → OpenAI key
+    const hasGroq   = !!process.env.GROQ_API_KEY;
+    const hasOpenAI = !!process.env.OPENAI_API_KEY;
 
-    if (!apiKey) {
-      return res.status(500).json({ error: "API key not configured on Vercel." });
+    let apiKey, baseUrl, model, provider;
+
+    if (process.env.AI_BASE_URL && (hasGroq || hasOpenAI)) {
+      // Explicit override
+      provider = hasGroq ? "groq" : "openai";
+      apiKey   = hasGroq ? process.env.GROQ_API_KEY : process.env.OPENAI_API_KEY;
+      baseUrl  = process.env.AI_BASE_URL;
+      model    = process.env.AI_MODEL ||
+                 (hasGroq ? "llama-3.1-8b-instant" : "gpt-4o-mini");
+    } else if (hasGroq) {
+      provider = "groq";
+      apiKey   = process.env.GROQ_API_KEY;
+      baseUrl  = "https://api.groq.com/openai/v1";
+      // ✅ Valid Groq model. `allam-2-7b` is Arabic-capable.
+      model    = process.env.AI_MODEL || "llama-3.1-8b-instant";
+    } else if (hasOpenAI) {
+      provider = "openai";
+      apiKey   = process.env.OPENAI_API_KEY;
+      baseUrl  = "https://api.openai.com/v1";
+      model    = process.env.AI_MODEL || "gpt-4o-mini";
+    } else {
+      return res.status(500).json({ error: "No AI provider configured. Set GROQ_API_KEY or OPENAI_API_KEY." });
     }
 
+    console.log(`[chat] provider=${provider} model=${model}`);
+
+    // ── Call the LLM ───────────────────────────────────
     const llmResponse = await fetch(`${baseUrl}/chat/completions`, {
       method: "POST",
       headers: {
@@ -140,7 +167,22 @@ export default async function handler(req, res) {
     if (!llmResponse.ok) {
       const errText = await llmResponse.text();
       console.error("LLM error:", llmResponse.status, errText);
-      return res.status(502).json({ error: "AI provider error: " + llmResponse.status });
+
+      // Extra helpful message for common issues
+      let hint = "";
+      if (llmResponse.status === 404) {
+        hint = ` — model '${model}' may not exist on ${provider}. Set AI_MODEL to a valid model.`;
+      } else if (llmResponse.status === 401) {
+        hint = ` — invalid API key for ${provider}.`;
+      } else if (llmResponse.status === 429) {
+        hint = ` — rate limit or quota exceeded on ${provider}.`;
+      }
+
+      return res.status(502).json({
+        error: `AI provider error: ${llmResponse.status}${hint}`,
+        provider,
+        model,
+      });
     }
 
     const llmData = await llmResponse.json();
@@ -152,6 +194,7 @@ export default async function handler(req, res) {
     }
 
     return res.status(200).json({ reply });
+
   } catch (err) {
     console.error("Error:", err);
     return res.status(500).json({ error: "Internal error: " + err.message });
