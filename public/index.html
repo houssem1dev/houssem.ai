@@ -170,7 +170,7 @@ button, input, textarea { font-family: inherit; }
                 <div class="hero" id="hero">
                     <div class="hero-logo"></div>
                     <div class="hero-title">كيف يمكنني مساعدتك؟</div>
-                    <div class="hero-sub">حسام القسنطيني —أحد أول الذكاء الاصطناعي التونسي المتقدم</div>
+                    <div class="hero-sub">حسام القسنطيني — أحد أول الذكاء الاصطناعي التونسي المتقدم</div>
                     <div class="suggestions">
                         <div class="suggest-card" data-prompt="كيف أحمي نفسي من الهجمات الإلكترونية؟">
                             <div class="suggest-title">🔐 اختراق أخلاقي</div>
@@ -364,7 +364,9 @@ async function sendMessage() {
         const data = await response.json().catch(() => ({}));
 
         if (!response.ok) {
-            throw new Error(data.error || ("HTTP " + response.status));
+            const e = new Error(data.error || ("HTTP " + response.status));
+            e.debug = data.debug || null;
+            throw e;
         }
 
         const fullText = data.reply || "(no response)";
@@ -380,6 +382,12 @@ async function sendMessage() {
             assistantDiv.textContent = "⏱️ انتهت المهلة. الخادم بطيء. حاول مرة أخرى.";
         } else {
             assistantDiv.textContent = "❌ خطأ: " + err.message;
+            if (err.debug) {
+                const d = document.createElement("pre");
+                d.style.cssText = "margin-top:8px;font-size:0.75em;color:#8a8a8a;direction:ltr;text-align:left;white-space:pre-wrap;";
+                d.textContent = JSON.stringify(err.debug, null, 2);
+                assistantDiv.appendChild(d);
+            }
         }
     } finally {
         clearTimeout(timeoutId);
