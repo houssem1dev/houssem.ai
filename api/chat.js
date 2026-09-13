@@ -1,5 +1,5 @@
 // api/chat.js — Vercel Node.js Serverless Function
-// Auto-detects Groq or OpenAI based on env vars.
+// Auto-detects Groq or OpenAI. Optimized for speed.
 // ─────────────────────────────────────────────────────
 
 const BASE_IDENTITY =
@@ -64,7 +64,7 @@ function inspectOutput(text) {
   return { ok: true };
 }
 
-// In-memory rate limiter (per warm serverless instance)
+// In-memory rate limiter (per warm instance)
 const rateBucket = new Map();
 function rateLimit(ip, max = 15, windowMs = 60_000) {
   const now = Date.now();
@@ -79,12 +79,25 @@ function rateLimit(ip, max = 15, windowMs = 60_000) {
 }
 
 export default async function handler(req, res) {
+  const t0 = Date.now();
+
   // ── CORS ─────────────────────────────────────────────
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
   if (req.method === "OPTIONS") return res.status(200).end();
+
+  // ── Health check (GET) ───────────────────────────────
+  if (req.method === "GET") {
+    return res.status(200).json({
+      status: "ok",
+      groq:   !!process.env.GROQ_API_KEY,
+      openai: !!process.env.OPENAI_API_KEY,
+      model:  process.env.AI_MODEL || "auto",
+    });
+  }
+
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   try {
@@ -115,18 +128,16 @@ export default async function handler(req, res) {
     const sysPrompt = BASE_IDENTITY + "\n\n" + (DOMAIN_PROMPTS[domain] || DOMAIN_PROMPTS.cyber);
     const apiMessages = [
       { role: "system", content: sysPrompt },
-      ...messages.slice(-20),
+      ...messages.slice(-10),          // ← reduced from 20 to 10 for speed
     ];
 
     // ── Provider detection ─────────────────────────────
-    // Priority: explicit env vars → Groq key → OpenAI key
     const hasGroq   = !!process.env.GROQ_API_KEY;
     const hasOpenAI = !!process.env.OPENAI_API_KEY;
 
     let apiKey, baseUrl, model, provider;
 
     if (process.env.AI_BASE_URL && (hasGroq || hasOpenAI)) {
-      // Explicit override
       provider = hasGroq ? "groq" : "openai";
       apiKey   = hasGroq ? process.env.GROQ_API_KEY : process.env.OPENAI_API_KEY;
       baseUrl  = process.env.AI_BASE_URL;
@@ -136,7 +147,6 @@ export default async function handler(req, res) {
       provider = "groq";
       apiKey   = process.env.GROQ_API_KEY;
       baseUrl  = "https://api.groq.com/openai/v1";
-      // ✅ Valid Groq model. `allam-2-7b` is Arabic-capable.
       model    = process.env.AI_MODEL || "llama-3.1-8b-instant";
     } else if (hasOpenAI) {
       provider = "openai";
@@ -147,28 +157,44 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: "No AI provider configured. Set GROQ_API_KEY or OPENAI_API_KEY." });
     }
 
-    console.log(`[chat] provider=${provider} model=${model}`);
+    console.log(`[chat] provider=${provider} model=${model} msgs=${apiMessages.length}`);
 
-    // ── Call the LLM ───────────────────────────────────
-    const llmResponse = await fetch(`${baseUrl}/chat/completions`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model,
-        messages: apiMessages,
-        temperature: 0.4,
-        max_tokens: 2048,
-      }),
-    });
+    // ── Call LLM with 25s timeout ──────────────────────
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 25_000);
+
+    const tLLM = Date.now();
+    let llmResponse;
+    try {
+      llmResponse = await fetch(`${baseUrl}/chat/completions`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model,
+          messages: apiMessages,
+          temperature: 0.4,
+          max_tokens: 1024,       // ← reduced from 2048 for speed
+          stream: false,
+        }),
+        signal: controller.signal,
+      });
+    } catch (e) {
+      clearTimeout(timeoutId);
+      if (e.name === "AbortError") {
+        return res.status(504).json({ error: "AI provider timed out (25s). Try again." });
+      }
+      throw e;
+    }
+    clearTimeout(timeoutId);
+    const llmMs = Date.now() - tLLM;
 
     if (!llmResponse.ok) {
       const errText = await llmResponse.text();
       console.error("LLM error:", llmResponse.status, errText);
 
-      // Extra helpful message for common issues
       let hint = "";
       if (llmResponse.status === 404) {
         hint = ` — model '${model}' may not exist on ${provider}. Set AI_MODEL to a valid model.`;
@@ -193,7 +219,13 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: "Response blocked for safety." });
     }
 
-    return res.status(200).json({ reply });
+    const totalMs = Date.now() - t0;
+    console.log(`[chat] llm=${llmMs}ms total=${totalMs}ms`);
+
+    res.setHeader("X-LLM-Ms", String(llmMs));
+    res.setHeader("X-Total-Ms", String(totalMs));
+
+    return res.status(200).json({ reply, _timing: { llm: llmMs, total: totalMs } });
 
   } catch (err) {
     console.error("Error:", err);
