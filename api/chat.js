@@ -1,18 +1,17 @@
-// api/chat.js — copy-paste ready. No env vars required except GROQ_API_KEY.
+// api/chat.js — copy-paste ready. Only needs GROQ_API_KEY env var.
 
 export const config = { runtime: "edge" };
 
 const GROQ_API_KEY = (process.env.GROQ_API_KEY || "").trim();
 const GROQ_URL     = "https://api.groq.com/openai/v1/chat/completions";
-const GROQ_MODEL   = "llama-3.3-70b-versatile"; // hardcoded — no env var needed
+const GROQ_MODEL   = "openai/gpt-oss-120b"; // current working Groq model
 
 const BASE_IDENTITY =
   "You are Houssem AI, one of the first Tunisian AI, created by Houssem Kessentini from Sfax, Tunisia. " +
   "The user is Houssem Kessentini.\n\n" +
   "STRICT RULES:\n" +
   "1. LANGUAGE PURITY: Reply ONLY in the exact language of the user's LAST message. " +
-  "If Arabic → 100% Arabic. If English → 100% English. If French → 100% French. " +
-  "DO NOT mix languages.\n" +
+  "If Arabic → 100% Arabic. If English → 100% English. If French → 100% French.\n" +
   "2. When the user greets you (hi, hello, hey, bonjour, salut, مرحبا, أهلا, السلام عليكم):\n" +
   "   - English → reply EXACTLY: 'Hello! I am Houssem AI, created by Houssem Kessentini. How can I help you?'\n" +
   "   - Arabic → reply EXACTLY: 'مرحباً! أنا حسام AI، طورني حسام القسنطيني. كيف يمكنني مساعدتك؟'\n" +
@@ -79,7 +78,6 @@ const json = (body, status = 200) =>
 export default async function handler(req) {
   if (req.method === "OPTIONS") return new Response(null, { status: 200, headers: CORS });
 
-  // GET → health check
   if (req.method === "GET") {
     return json({
       status: "ok",
