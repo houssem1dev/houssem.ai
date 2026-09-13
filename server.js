@@ -1,29 +1,39 @@
-// server.js
-// Secure backend proxy for Houssem AI
-// Run with: node server.js
+// ============================================================
+// Houssem AI — Secure Backend Server (No reCAPTCHA)
+// Run with: npm start
+// ============================================================
 
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
-import { createLLMFirewall } from "llm-firewall-js";
-import fetch from "node-fetch";
+import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
+
+dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
 // ============================================================
-// 1. GLOBAL SECURITY MIDDLEWARE
+// 1. SECURITY HEADERS
 // ============================================================
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "https://cdn.jsdelivr.net", "https://www.google.com", "https://www.gstatic.com"],
+      scriptSrc: [
+        "'self'",
+        "'unsafe-inline'",
+        "https://cdn.jsdelivr.net",
+      ],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "https://upload.wikimedia.org"],
-      connectSrc: ["'self'", "https://api.countapi.xyz", "https://www.google.com"],
-      frameSrc: ["https://www.google.com"],
+      connectSrc: ["'self'", "https://api.countapi.xyz"],
       objectSrc: ["'none'"],
       baseUri: ["'self'"],
       formAction: ["'self'"],
@@ -32,14 +42,18 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false,
 }));
 
-app.use(express.json({ limit: "50kb" })); // Prevent huge payload attacks
+app.use(express.json({ limit: "50kb" }));
+app.use(express.static(path.join(__dirname, "public")));
 
-// Strict CORS — only your domain can call the API
+// ============================================================
+// 2. CORS
+// ============================================================
 const ALLOWED_ORIGINS = [
-  "https://houssem-ai.vercel.app/",
-  "https://houssem-ai.vercel.app/",
   "http://localhost:3000",
   "http://localhost:5500",
+  "http://127.0.0.1:3000",
+  // 👇 Add your production domain here:
+  // "https://your-domain.com",
 ];
 
 app.use(cors({
@@ -47,30 +61,28 @@ app.use(cors({
     if (!origin || ALLOWED_ORIGINS.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error("Blocked by CORS: " + origin));
+      console.warn("CORS blocked origin:", origin);
+      callback(null, false);
     }
   },
-  methods: ["POST"],
+  methods: ["POST", "GET"],
   credentials: true,
 }));
 
 // ============================================================
-// 2. RATE LIMITING (Denial of Wallet protection)
+// 3. RATE LIMITING (Denial of Wallet protection)
 // ============================================================
 const chatLimiter = rateLimit({
-  windowMs: 60 * 1000,          // 1 minute
-  max: 8,                        // 8 requests per minute per IP
+  windowMs: 60 * 1000,
+  max: 15,
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: "Too many requests. Please wait a moment." },
-  keyGenerator: (req) => {
-    return req.headers["x-forwarded-for"]?.split(",")[0] || req.ip;
-  },
 });
 
 const dailyLimiter = rateLimit({
-  windowMs: 24 * 60 * 60 * 1000, // 24 hours
-  max: 500,                       // 500 requests per day per IP
+  windowMs: 24 * 60 * 60 * 1000,
+  max: 1500,
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: "Daily limit reached. Try again tomorrow." },
@@ -80,7 +92,7 @@ app.use("/api/chat", chatLimiter);
 app.use("/api/chat", dailyLimiter);
 
 // ============================================================
-// 3. SECRETS — Move these OUT of client-side code
+// 4. AI IDENTITY & DOMAIN PROMPTS (server-side only)
 // ============================================================
 const BASE_IDENTITY =
   "You are Houssem AI, one of the first Tunisian AI, created by Houssem Kessentini from Sfax, Tunisia. " +
@@ -93,8 +105,8 @@ const BASE_IDENTITY =
   "   - English → reply EXACTLY: 'Hello! I am Houssem AI, created by Houssem Kessentini. How can I help you?'\n" +
   "   - Arabic → reply EXACTLY: 'مرحباً! أنا حسام AI، طورني حسام القسنطيني. كيف يمكنني مساعدتك؟'\n" +
   "   - French → reply EXACTLY: 'Bonjour ! Je suis Houssem AI, créé par Houssem Kessentini. Comment puis-je vous aider ?'\n" +
-  "3. Never add titles like 'IT Engineer' or 'مهندس'. Never add extra words.\n" +
-  "4. For all other messages, respond normally in the user's language.";
+  "3. Never add titles like 'IT Engineer' or 'مهندس'. Never add extra words. Just use the exact format above.\n" +
+  "4. For all other messages (non-greetings), just respond normally in the user's language.";
 
 const DOMAIN_PROMPTS = {
   cyber: "You are a Cybersecurity Architect. Provide detailed defensive security analysis.",
@@ -105,51 +117,53 @@ const DOMAIN_PROMPTS = {
 };
 
 // ============================================================
-// 4. LLM FIREWALL (Prompt Injection defense)
+// 5. PROMPT INJECTION FIREWALL
 // ============================================================
-const firewall = createLLMFirewall({
-  allowedOrigins: ALLOWED_ORIGINS,
-  maxInputChars: 4000,
-  blockPhrases: [
-    "ignore previous instructions",
-    "ignore all previous",
-    "forget your instructions",
-    "system prompt",
-    "reveal your prompt",
-    "jailbreak",
-    "DAN mode",
-    "developer mode",
-  ],
-});
+const BLOCKED_PATTERNS = [
+  /ignore\s+(all\s+)?previous\s+instructions?/i,
+  /ignore\s+(all\s+)?prior\s+instructions?/i,
+  /forget\s+(your\s+)?instructions?/i,
+  /disregard\s+(all\s+)?previous/i,
+  /reveal\s+(your\s+)?(system\s+)?prompt/i,
+  /show\s+(me\s+)?(your\s+)?(system\s+)?prompt/i,
+  /what\s+(is|are)\s+your\s+(system\s+)?instructions?/i,
+  /repeat\s+(your\s+)?(system\s+)?prompt/i,
+  /jailbreak/i,
+  /DAN\s+mode/i,
+  /developer\s+mode/i,
+  /you\s+are\s+now\s+a/i,
+  /act\s+as\s+if\s+you\s+have\s+no\s+restrictions/i,
+];
 
-// ============================================================
-// 5. reCAPTCHA v3 VERIFICATION
-// ============================================================
-async function verifyRecaptcha(token, remoteIp) {
-  const secret = process.env.RECAPTCHA_SECRET_KEY;
-  if (!secret) {
-    console.warn("RECAPTCHA_SECRET_KEY not set — skipping verification");
-    return true;
+function inspectInput(text) {
+  if (!text || typeof text !== "string") {
+    return { ok: false, reason: "Invalid input" };
   }
-
-  const params = new URLSearchParams({
-    secret: secret,
-    response: token,
-    remoteip: remoteIp,
-  });
-
-  try {
-    const res = await fetch("https://www.google.com/recaptcha/api/siteverify", {
-      method: "POST",
-      body: params,
-    });
-    const data = await res.json();
-    // Score: 0.0 (bot) → 1.0 (human). Require >= 0.5
-    return data.success && data.score >= 0.5;
-  } catch (e) {
-    console.error("reCAPTCHA verification failed:", e);
-    return false;
+  if (text.length > 4000) {
+    return { ok: false, reason: "Message too long (max 4000 characters)" };
   }
+  for (const pattern of BLOCKED_PATTERNS) {
+    if (pattern.test(text)) {
+      return { ok: false, reason: "Prompt injection detected" };
+    }
+  }
+  return { ok: true };
+}
+
+function inspectOutput(text) {
+  if (!text) return { ok: true };
+  const leakPatterns = [
+    /You are Houssem AI, one of the first Tunisian AI/i,
+    /STRICT RULES:/i,
+    /LANGUAGE PURITY:/i,
+    /sk-[a-zA-Z0-9]{20,}/,
+  ];
+  for (const pattern of leakPatterns) {
+    if (pattern.test(text)) {
+      return { ok: false, reason: "Response contains protected content" };
+    }
+  }
+  return { ok: true };
 }
 
 // ============================================================
@@ -157,51 +171,47 @@ async function verifyRecaptcha(token, remoteIp) {
 // ============================================================
 app.post("/api/chat", async (req, res) => {
   try {
-    const { messages, domain, recaptchaToken } = req.body;
+    const { messages, domain } = req.body;
 
-    // --- Validate request shape ---
     if (!Array.isArray(messages) || messages.length === 0) {
       return res.status(400).json({ error: "Invalid messages" });
     }
 
-    // --- reCAPTCHA check ---
-    const clientIp = req.headers["x-forwarded-for"]?.split(",")[0] || req.ip;
-    const isHuman = await verifyRecaptcha(recaptchaToken, clientIp);
-    if (!isHuman) {
-      return res.status(403).json({ error: "Bot detected. Access denied." });
-    }
-
-    // --- Firewall: inspect user input ---
+    // Firewall: inspect input
     const lastUserMessage = messages[messages.length - 1]?.content || "";
-    const inputCheck = await firewall.inspectInput({
-      request: req,
-      body: req.body,
-      text: lastUserMessage,
-    });
-
+    const inputCheck = inspectInput(lastUserMessage);
     if (!inputCheck.ok) {
       return res.status(400).json({
         error: "Request blocked by security firewall.",
-        reason: inputCheck.reason || "suspicious input",
+        reason: inputCheck.reason,
       });
     }
 
-    // --- Build system prompt server-side ---
-    const sysPrompt = BASE_IDENTITY + " " + (DOMAIN_PROMPTS[domain] || DOMAIN_PROMPTS.cyber);
+    // Build system prompt
+    const sysPrompt = BASE_IDENTITY + "\n\n" + (DOMAIN_PROMPTS[domain] || DOMAIN_PROMPTS.cyber);
     const apiMessages = [
       { role: "system", content: sysPrompt },
       ...messages.slice(-20),
     ];
 
-    // --- Call the LLM provider (replace with your actual provider) ---
-    const llmResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+    // Check API key
+    const apiKey = process.env.OPENAI_API_KEY;
+    const baseUrl = process.env.AI_BASE_URL || "https://api.openai.com/v1";
+    const model = process.env.AI_MODEL || "gpt-4o-mini";
+
+    if (!apiKey || apiKey === "sk-your-real-api-key-here") {
+      return res.status(500).json({ error: "API key not configured on server." });
+    }
+
+    // Call the LLM provider
+    const llmResponse = await fetch(`${baseUrl}/chat/completions`, {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Authorization": `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: model,
         messages: apiMessages,
         temperature: 0.4,
         max_tokens: 2048,
@@ -210,32 +220,52 @@ app.post("/api/chat", async (req, res) => {
 
     if (!llmResponse.ok) {
       const errText = await llmResponse.text();
-      console.error("LLM error:", errText);
-      return res.status(502).json({ error: "AI provider error" });
+      console.error("LLM error:", llmResponse.status, errText);
+      return res.status(502).json({ error: "AI provider error: " + llmResponse.status });
     }
 
     const llmData = await llmResponse.json();
     const assistantMessage = llmData.choices?.[0]?.message?.content || "";
 
-    // --- Firewall: inspect output for leaks ---
-    const outputCheck = firewall.inspectOutput(llmData);
+    // Firewall: inspect output
+    const outputCheck = inspectOutput(assistantMessage);
     if (!outputCheck.ok) {
       return res.status(500).json({ error: "Response blocked for safety." });
     }
 
-    // --- Send final answer ---
     res.json({ reply: assistantMessage });
 
   } catch (err) {
     console.error("Server error:", err);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ error: "Internal server error: " + err.message });
   }
 });
 
 // ============================================================
-// 7. START SERVER
+// 7. HEALTH CHECK
+// ============================================================
+app.get("/api/health", (req, res) => {
+  res.json({
+    status: "ok",
+    apiKey: !!process.env.OPENAI_API_KEY &&
+      process.env.OPENAI_API_KEY !== "sk-your-real-api-key-here",
+    model: process.env.AI_MODEL || "gpt-4o-mini",
+  });
+});
+
+// ============================================================
+// 8. START SERVER
 // ============================================================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`🔐 Secure Houssem AI proxy running on port ${PORT}`);
+  console.log("");
+  console.log("🔐 ============================================");
+  console.log("   Houssem AI — Secure Server (No reCAPTCHA)");
+  console.log("🔐 ============================================");
+  console.log(`   URL:     http://localhost:${PORT}`);
+  console.log(`   Model:   ${process.env.AI_MODEL || "gpt-4o-mini"}`);
+  console.log(`   API Key: ${process.env.OPENAI_API_KEY &&
+    process.env.OPENAI_API_KEY !== "sk-your-real-api-key-here" ? "✅ Set" : "❌ Missing"}`);
+  console.log("🔐 ============================================");
+  console.log("");
 });
