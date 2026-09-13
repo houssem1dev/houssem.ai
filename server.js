@@ -36,8 +36,8 @@ app.use(express.json({ limit: "50kb" })); // Prevent huge payload attacks
 
 // Strict CORS — only your domain can call the API
 const ALLOWED_ORIGINS = [
-  "https://your-houssem-ai-domain.com",
-  "https://www.your-houssem-ai-domain.com",
+  "https://houssem-ai.vercel.app/",
+  "https://houssem-ai.vercel.app/",
   "http://localhost:3000",
   "http://localhost:5500",
 ];
