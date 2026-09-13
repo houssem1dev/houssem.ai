@@ -4,7 +4,7 @@ export const config = { runtime: "edge" };
 
 const GROQ_API_KEY = (process.env.GROQ_API_KEY || "").trim();
 const GROQ_URL     = "https://api.groq.com/openai/v1/chat/completions";
-const GROQ_MODEL   = "llama-3.1-8b-instant"; // confirmed Groq model
+const GROQ_MODEL   = "openai/gpt-oss-20b"; // replacement for llama-3.1-8b-instant
 
 const BASE_IDENTITY =
   "You are Houssem AI, one of the first Tunisian AI, created by Houssem Kessentini from Sfax, Tunisia. " +
